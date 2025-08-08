@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/medium_padding"
+    tools:context=".SearchActivity">
+
+    <ImageButton
+        android:id="@+id/main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/white"
+        android:src="@drawable/ic_arrow_back"
+        android:contentDescription="@string/title"
+        android:minWidth="@dimen/button_size"
+        android:minHeight="@dimen/button_size"
+        android:padding="@dimen/button_padding"/>
+
+    <TextView
+        android:text="@string/search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center" />
+</FrameLayout>
