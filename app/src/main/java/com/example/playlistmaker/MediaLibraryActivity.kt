@@ -1,6 +1,5 @@
 package com.example.playlistmaker
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
@@ -10,11 +9,10 @@ class MediaLibraryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_library)
 
-        val mainButton = findViewById<ImageButton>(R.id.main)
+        val backButton = findViewById<ImageButton>(R.id.back)
 
-        mainButton.setOnClickListener {
-            val mainIntent = Intent(this, MainActivity::class.java)
-            startActivity(mainIntent)
+        backButton.setOnClickListener {
+            finish()
         }
     }
 }

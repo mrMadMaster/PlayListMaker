@@ -2,10 +2,11 @@
 <resources>
     <dimen name="primary_text_size">22sp</dimen>
     <dimen name="small_text_size">16sp</dimen>
+    <dimen name="large_padding">21dp</dimen>
     <dimen name="medium_padding">16dp</dimen>
     <dimen name="small_padding">12dp</dimen>
     <dimen name="radius">16dp</dimen>
     <dimen name="icon_padding">3dp</dimen>
-    <dimen name="button_padding">14dp</dimen>
+    <dimen name="button_padding">12dp</dimen>
     <dimen name="button_size">48dp</dimen>
 </resources>
