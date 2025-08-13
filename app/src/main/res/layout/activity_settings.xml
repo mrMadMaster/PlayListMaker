@@ -28,18 +28,18 @@
             android:text="@string/settings"
             android:textSize="@dimen/primary_text_size"
             android:textColor="@color/black"
-            android:layout_marginStart="12dp"
-            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/small_padding"
+            android:layout_marginTop="8dp"
             android:textStyle="bold"
             android:layout_toEndOf="@+id/back"/>
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingVertical="@dimen/large_padding"
-        android:paddingHorizontal="@dimen/medium_padding"
-        android:layout_marginTop="24dp">
+        android:layout_height="@dimen/large_size"
+        android:paddingStart="@dimen/medium_padding"
+        android:paddingEnd="6dp"
+        android:layout_marginTop="@dimen/top_padding">
 
         <TextView
             android:layout_width="wrap_content"
@@ -53,20 +53,18 @@
 
         <Switch
             android:id="@+id/day_night"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/medium_size"
+            android:layout_height="@dimen/button_size"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:minWidth="@dimen/button_size"
-            android:minHeight="@dimen/button_size"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingVertical="@dimen/large_padding"
-        android:paddingHorizontal="@dimen/medium_padding">
+        android:layout_height="@dimen/large_size"
+        android:paddingStart="@dimen/medium_padding"
+        android:paddingEnd="@dimen/small_padding">
 
         <TextView
             android:layout_width="wrap_content"
@@ -83,20 +81,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
+            android:layout_marginTop="@dimen/icon_top_padding"
             android:backgroundTint="@color/white"
             android:src="@drawable/ic_send_24"
-            android:contentDescription="@string/send"
-            android:minWidth="@dimen/button_size"
-            android:minHeight="@dimen/button_size"
-            android:padding="@dimen/button_padding"/>
+            android:contentDescription="@string/send" />
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingVertical="@dimen/large_padding"
-        android:paddingHorizontal="@dimen/medium_padding">
+        android:layout_height="@dimen/large_size"
+        android:paddingStart="@dimen/medium_padding"
+        android:paddingEnd="@dimen/small_padding">
 
         <TextView
             android:layout_width="wrap_content"
@@ -113,20 +108,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
+            android:layout_marginTop="@dimen/icon_top_padding"
             android:backgroundTint="@color/white"
             android:src="@drawable/ic_support_24"
-            android:contentDescription="@string/support"
-            android:minWidth="@dimen/button_size"
-            android:minHeight="@dimen/button_size"
-            android:padding="@dimen/button_padding"/>
+            android:contentDescription="@string/support" />
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingVertical="@dimen/large_padding"
-        android:paddingHorizontal="@dimen/medium_padding">
+        android:layout_height="@dimen/large_size"
+        android:paddingStart="@dimen/medium_padding"
+        android:paddingEnd="@dimen/small_padding">
 
         <TextView
             android:layout_width="wrap_content"
@@ -143,12 +135,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
+            android:layout_marginTop="@dimen/icon_top_padding"
             android:backgroundTint="@color/white"
             android:src="@drawable/ic_user_agreement_24"
-            android:contentDescription="@string/user_agreement"
-            android:minWidth="@dimen/button_size"
-            android:minHeight="@dimen/button_size"
-            android:padding="@dimen/button_padding"/>
+            android:contentDescription="@string/user_agreement" />
     </RelativeLayout>
 </LinearLayout>

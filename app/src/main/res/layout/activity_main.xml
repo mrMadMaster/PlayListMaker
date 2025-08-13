@@ -6,17 +6,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/blue"
     android:orientation="vertical"
-    android:padding="@dimen/medium_padding"
+    android:paddingHorizontal="@dimen/medium_padding"
     tools:context=".MainActivity">
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
+        android:layout_height="@dimen/medium_size"
+        android:paddingTop="@dimen/small_padding"
         android:text="@string/title"
         android:textColor="@color/white"
-        android:textSize="@dimen/primary_text_size"
-        android:textStyle="bold"/>
+        android:textSize="@dimen/primary_text_size" />
 
     <Button
         android:id="@+id/search"
@@ -33,7 +32,10 @@
         app:iconTint="@color/black"
         app:cornerRadius="@dimen/radius"
         android:textAllCaps="false"
-        android:layout_marginTop="24dp" />
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:layout_marginTop="@dimen/top_padding"
+        android:layout_marginBottom="@dimen/medium_padding"/>
 
     <Button
         android:id="@+id/media_library"
@@ -49,7 +51,9 @@
         app:iconPadding="@dimen/icon_padding"
         app:iconTint="@color/black"
         app:cornerRadius="@dimen/radius"
-        android:textAllCaps="false"/>
+        android:textAllCaps="false"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"/>
 
     <Button
         android:id="@+id/settings"
@@ -65,6 +69,10 @@
         app:iconPadding="@dimen/icon_padding"
         app:iconTint="@color/black"
         app:cornerRadius="@dimen/radius"
-        android:textAllCaps="false"/>
+        android:textAllCaps="false"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:layout_marginTop="@dimen/medium_padding"
+        android:layout_marginBottom="28dp"/>
 
 </LinearLayout>
