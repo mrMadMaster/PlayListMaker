@@ -55,11 +55,6 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        private const val EDITTEXT_KEY = "EDITTEXT_KEY"
-        private const val EDITTEXT_DEF = ""
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(EDITTEXT_KEY, currentEditText)
@@ -68,5 +63,10 @@ class SearchActivity : AppCompatActivity() {
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         currentEditText = savedInstanceState.getString(EDITTEXT_KEY, currentEditText)
+    }
+
+    companion object {
+        private const val EDITTEXT_KEY = "EDITTEXT_KEY"
+        private const val EDITTEXT_DEF = ""
     }
 }

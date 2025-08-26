@@ -50,8 +50,7 @@
             android:textFontWeight="400"
             android:textSize="@dimen/small_text_size"
             android:lines="1"
-            android:textColor="@color/black"
-            android:textCursorDrawable="@drawable/cursor"/>
+            android:textColor="@color/black" />
 
         <ImageView
             android:id="@+id/clear"
