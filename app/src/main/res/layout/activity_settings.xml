@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/white"
+    android:background="@color/background"
     tools:context=".SettingsActivity">
 
     <RelativeLayout
@@ -12,44 +12,27 @@
         android:layout_height="wrap_content"
         android:padding="4dp">
 
-        <ImageButton
+        <ImageButton style="@style/BackButton"
             android:id="@+id/back"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
-            android:backgroundTint="@color/white"
-            android:src="@drawable/ic_arrow_back_24"
-            android:contentDescription="@string/title"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true" />
+            android:contentDescription="@string/title" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <TextView style="@style/Text22"
             android:text="@string/settings"
-            android:textSize="@dimen/primary_text_size"
-            android:textColor="@color/black"
             android:layout_marginStart="@dimen/small_padding"
-            android:layout_marginTop="8dp"
-            android:textStyle="bold"
+            android:layout_marginTop="10dp"
             android:layout_toEndOf="@+id/back"/>
     </RelativeLayout>
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/large_size"
+        style="@style/SettingsButtons"
         android:paddingStart="@dimen/medium_padding"
         android:paddingEnd="6dp"
         android:layout_marginTop="@dimen/top_padding">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/SettingsButtonsText"
             android:text="@string/night"
-            android:layout_toStartOf="@+id/day_night"
-            android:textSize="@dimen/small_text_size"
-            android:textColor="@color/black"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_toStartOf="@+id/day_night" />
 
         <Switch
             android:id="@+id/day_night"
@@ -61,82 +44,49 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/large_size"
-        android:paddingStart="@dimen/medium_padding"
-        android:paddingEnd="@dimen/small_padding">
+        style="@style/SettingsButtons"
+        android:id="@+id/button_share">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/SettingsButtonsText"
             android:text="@string/send"
-            android:layout_toStartOf="@+id/send"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small_text_size"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_toStartOf="@+id/send" />
 
         <ImageView
+            style="@style/SettingsButtonsImage"
             android:id="@+id/send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="@dimen/icon_top_padding"
-            android:backgroundTint="@color/white"
             android:src="@drawable/ic_send_24"
             android:contentDescription="@string/send" />
     </RelativeLayout>
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/large_size"
-        android:paddingStart="@dimen/medium_padding"
-        android:paddingEnd="@dimen/small_padding">
+        style="@style/SettingsButtons"
+        android:id="@+id/button_support">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/SettingsButtonsText"
             android:text="@string/support"
-            android:layout_toStartOf="@+id/support"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small_text_size"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_toStartOf="@+id/support" />
 
         <ImageView
+            style="@style/SettingsButtonsImage"
             android:id="@+id/support"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="@dimen/icon_top_padding"
-            android:backgroundTint="@color/white"
             android:src="@drawable/ic_support_24"
             android:contentDescription="@string/support" />
     </RelativeLayout>
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/large_size"
-        android:paddingStart="@dimen/medium_padding"
-        android:paddingEnd="@dimen/small_padding">
+        style="@style/SettingsButtons"
+        android:id="@+id/button_user_agreement">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/SettingsButtonsText"
             android:text="@string/user_agreement"
-            android:layout_toStartOf="@+id/user_agreement"
-            android:textColor="@color/black"
-            android:textSize="@dimen/small_text_size"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_toStartOf="@+id/user_agreement" />
 
         <ImageView
+            style="@style/SettingsButtonsImage"
             android:id="@+id/user_agreement"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="@dimen/icon_top_padding"
-            android:backgroundTint="@color/white"
             android:src="@drawable/ic_user_agreement_24"
             android:contentDescription="@string/user_agreement" />
     </RelativeLayout>
