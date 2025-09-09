@@ -9,6 +9,9 @@
     <string name="send">Поделиться приложением</string>
     <string name="clear">Очистить</string>
     <string name="night">Темная тема</string>
+    <string name="art">artwork</string>
+    <string name="forward">forward</string>
+    <string name="dot">dot</string>
     <string name="practicum">https://practicum.yandex.ru/profile/android-developer-plus/</string>
     <string name="email">orlov1988brest@gmail.com</string>
     <string name="theme_message_to_developer">Сообщение разработчикам и разработчицам приложения Playlist Maker</string>
