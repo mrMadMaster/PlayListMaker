@@ -15,7 +15,7 @@ class SearchActivity : AppCompatActivity() {
 
     private var currentEditText: String = EDITTEXT_DEF
 
-    private val trackList = mutableListOf(
+    private val trackList = listOf(
         Track(
             trackName = "Smells Like Teen Spirit",
             artistName = "Nirvana",
