@@ -50,7 +50,9 @@
             android:textFontWeight="400"
             android:textSize="@dimen/small_text_size"
             android:lines="1"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:imeOptions="actionDone"
+            android:singleLine="true"/>
 
         <ImageView
             android:id="@+id/clear"
@@ -71,4 +73,29 @@
         android:layout_marginTop="124dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
+    <LinearLayout style="@style/ErrorLayout"
+        android:id="@+id/noConnection"
+        android:visibility="gone">
+
+        <ImageView style="@style/ErrorImage"
+            android:src="@drawable/ic_no_connection_120" />
+
+        <TextView style="@style/ErrorText"
+            android:text="@string/no_connection" />
+
+        <Button style="@style/RefreshButton"
+            android:id="@+id/refreshButton"
+            android:text="@string/refresh" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/ErrorLayout"
+        android:id="@+id/nothingFound"
+        android:visibility="gone">
+
+        <ImageView style="@style/ErrorImage"
+            android:src="@drawable/ic_not_found_120" />
+
+        <TextView style="@style/ErrorText"
+            android:text="@string/not_found" />
+    </LinearLayout>
 </FrameLayout>
