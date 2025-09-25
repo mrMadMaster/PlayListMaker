@@ -24,7 +24,7 @@ class SearchActivity : AppCompatActivity() {
     private var currentEditText: String = EDITTEXT_DEF
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("https://itunes.apple.com")
+        .baseUrl(ITUNES_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
@@ -53,8 +53,7 @@ class SearchActivity : AppCompatActivity() {
 
         clearButton.setOnClickListener {
             inputEditText.text.clear()
-            noConnection.visibility = View.GONE
-            nothingFound.visibility = View.GONE
+            clearErrors()
             trackList.clear()
             trackAdapter.notifyDataSetChanged()
             val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -104,32 +103,41 @@ class SearchActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         val results = response.body()?.results
                         if (results?.isNotEmpty() == true) {
-                            noConnection.visibility = View.GONE
-                            nothingFound.visibility = View.GONE
+                            clearErrors()
                             trackList.addAll(results)
                             trackAdapter.notifyDataSetChanged()
                         } else {
-                            noConnection.visibility = View.GONE
-                            nothingFound.visibility = View.VISIBLE
-                            trackList.clear()
-                            trackAdapter.notifyDataSetChanged()
+                            nothingFound()
                         }
                     } else {
-                        noConnection.visibility = View.VISIBLE
-                        nothingFound.visibility = View.GONE
-                        trackList.clear()
-                        trackAdapter.notifyDataSetChanged()
+                        noConnectin()
                     }
                 }
 
                 override fun onFailure(call: Call<TrackResponse>, t: Throwable) {
-                    noConnection.visibility = View.VISIBLE
-                    nothingFound.visibility = View.GONE
-                    trackList.clear()
-                    trackAdapter.notifyDataSetChanged()
+                    noConnectin()
                 }
             })
         }
+    }
+
+    private fun noConnectin() {
+        noConnection.visibility = View.VISIBLE
+        nothingFound.visibility = View.GONE
+        trackList.clear()
+        trackAdapter.notifyDataSetChanged()
+    }
+
+    private fun nothingFound() {
+        noConnection.visibility = View.GONE
+        nothingFound.visibility = View.VISIBLE
+        trackList.clear()
+        trackAdapter.notifyDataSetChanged()
+    }
+
+    private fun clearErrors() {
+        noConnection.visibility = View.GONE
+        nothingFound.visibility = View.GONE
     }
 
     fun clearButtonVisibility(s: CharSequence?): Int {
@@ -153,5 +161,6 @@ class SearchActivity : AppCompatActivity() {
     companion object {
         private const val EDITTEXT_KEY = "EDITTEXT_KEY"
         private const val EDITTEXT_DEF = ""
+        private const val ITUNES_URL = "https://itunes.apple.com"
     }
 }
