@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/background"
     tools:context=".SettingsActivity">
@@ -26,21 +27,24 @@
     <RelativeLayout
         style="@style/SettingsButtons"
         android:paddingStart="@dimen/medium_padding"
-        android:paddingEnd="6dp"
+        android:paddingEnd="@dimen/small_padding"
         android:layout_marginTop="@dimen/top_padding">
 
         <TextView
             style="@style/SettingsButtonsText"
             android:text="@string/night"
-            android:layout_toStartOf="@+id/day_night" />
+            android:layout_toStartOf="@+id/themeSwitcher" />
 
-        <Switch
-            android:id="@+id/day_night"
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/themeSwitcher"
             android:layout_width="@dimen/medium_size"
             android:layout_height="@dimen/button_size"
+            android:thumb="@drawable/switch_thumb"
+            android:track="@drawable/switch_track"
+            app:thumbTint="@color/switch_thumb"
+            app:trackTint="@color/switch_track"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:layout_centerVertical="true" />
     </RelativeLayout>
 
     <RelativeLayout
