@@ -27,27 +27,42 @@ class SearchActivity : AppCompatActivity() {
         .baseUrl(ITUNES_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-
     private val itunesService = retrofit.create(ItunesApi::class.java)
+
     private lateinit var inputEditText: EditText
-    private lateinit var nothingFound: LinearLayout
-    private lateinit var noConnection: LinearLayout
-
-
+    private lateinit var nothingFoundLayout: LinearLayout
+    private lateinit var noConnectionLayout: LinearLayout
+    private lateinit var searchHistoryLayout: LinearLayout
+    private lateinit var searchHistory: SearchHistory
+    private lateinit var trackAdapter: TrackAdapter
+    private lateinit var historyAdapter: TrackAdapter
+    private val historyList = mutableListOf<Track>()
     private val trackList = mutableListOf<Track>()
-    val trackAdapter = TrackAdapter(trackList)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
+
+        val sharedPreferences = getSharedPreferences("track_history", MODE_PRIVATE)
+        searchHistory = SearchHistory(sharedPreferences)
+
         val backButton = findViewById<ImageButton>(R.id.back)
         val clearButton = findViewById<ImageView>(R.id.clear)
-        inputEditText = findViewById(R.id.searchText)
-        nothingFound = findViewById(R.id.nothingFound)
-        noConnection = findViewById(R.id.noConnection)
+        val clearHistoryButton = findViewById<Button>(R.id.clearHistoryButton)
         val refreshButton = findViewById<Button>(R.id.refreshButton)
+
+        inputEditText = findViewById(R.id.searchText)
+        nothingFoundLayout = findViewById(R.id.nothingFound)
+        noConnectionLayout = findViewById(R.id.noConnection)
+        searchHistoryLayout = findViewById(R.id.searchHistory)
+
+        val tracksHistoryRecycler = findViewById<RecyclerView>(R.id.tracksHistory)
         val recycler = findViewById<RecyclerView>(R.id.tracks)
+
+        trackAdapter = TrackAdapter(trackList) { track -> onTrackClick(track)}
         recycler.adapter = trackAdapter
+        historyAdapter = TrackAdapter(historyList) { track -> onTrackClick(track)}
+        tracksHistoryRecycler.adapter = historyAdapter
 
         backButton.setOnClickListener { finish() }
 
@@ -56,9 +71,19 @@ class SearchActivity : AppCompatActivity() {
             clearErrors()
             trackList.clear()
             trackAdapter.notifyDataSetChanged()
-            val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
-            inputMethodManager?.hideSoftInputFromWindow(inputEditText.windowToken, 0)
+            hideKeyboard()
             inputEditText.clearFocus()
+        }
+
+        clearHistoryButton.setOnClickListener {
+            searchHistory.clearHistory()
+            historyList.clear()
+            historyAdapter.notifyDataSetChanged()
+            searchHistoryLayout.visibility = View.GONE
+        }
+
+        refreshButton.setOnClickListener {
+            search()
         }
 
         inputEditText.setOnEditorActionListener { _, actionId, _ ->
@@ -71,9 +96,7 @@ class SearchActivity : AppCompatActivity() {
             false
         }
 
-        refreshButton.setOnClickListener {
-            search()
-        }
+        history()
 
         val simpleTextWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -83,6 +106,7 @@ class SearchActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 currentEditText = s.toString()
                 clearButton.visibility = clearButtonVisibility(s)
+                searchHistoryLayout.visibility = if (historyList.isNotEmpty() && inputEditText.hasFocus() && s?.isEmpty() == true) View.VISIBLE else View.GONE
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -90,6 +114,9 @@ class SearchActivity : AppCompatActivity() {
             }
         }
         inputEditText.addTextChangedListener(simpleTextWatcher)
+        inputEditText.setOnFocusChangeListener{ _, hasFocus ->
+            searchHistoryLayout.visibility = if (historyList.isNotEmpty() && hasFocus && inputEditText.text.isEmpty()) View.VISIBLE else View.GONE
+        }
     }
 
     private fun search() {
@@ -121,23 +148,28 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
+    fun hideKeyboard(){
+        val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
+        inputMethodManager?.hideSoftInputFromWindow(inputEditText.windowToken, 0)
+    }
+
     private fun noConnectin() {
-        noConnection.visibility = View.VISIBLE
-        nothingFound.visibility = View.GONE
+        noConnectionLayout.visibility = View.VISIBLE
+        nothingFoundLayout.visibility = View.GONE
         trackList.clear()
         trackAdapter.notifyDataSetChanged()
     }
 
     private fun nothingFound() {
-        noConnection.visibility = View.GONE
-        nothingFound.visibility = View.VISIBLE
+        noConnectionLayout.visibility = View.GONE
+        nothingFoundLayout.visibility = View.VISIBLE
         trackList.clear()
         trackAdapter.notifyDataSetChanged()
     }
 
     private fun clearErrors() {
-        noConnection.visibility = View.GONE
-        nothingFound.visibility = View.GONE
+        noConnectionLayout.visibility = View.GONE
+        nothingFoundLayout.visibility = View.GONE
     }
 
     fun clearButtonVisibility(s: CharSequence?): Int {
@@ -146,6 +178,18 @@ class SearchActivity : AppCompatActivity() {
         } else {
             View.VISIBLE
         }
+    }
+
+    private fun history(){
+        historyList.clear()
+        historyList.addAll(searchHistory.readHistory())
+        historyAdapter.notifyDataSetChanged()
+    }
+
+    private fun onTrackClick(track: Track){
+        searchHistory.writeHistory(track)
+        history()
+        hideKeyboard()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
