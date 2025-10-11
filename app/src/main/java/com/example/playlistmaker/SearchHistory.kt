@@ -6,14 +6,16 @@ import androidx.core.content.edit
 
 class SearchHistory(private val sharedPreferences: SharedPreferences) {
 
-    fun readHistory(): MutableList<Track> {
+    private val gson = Gson()
+
+    fun readHistory(): List<Track> {
         val json = sharedPreferences.getString(TRACK_HISTORY_KEY, null)
-        return Gson().fromJson(json, Array<Track>::class.java)?.toMutableList()
+        return gson.fromJson(json, Array<Track>::class.java)?.toMutableList()
             ?: emptyArray<Track>().toMutableList()
     }
 
     fun writeHistory(track: Track){
-        val trackHistory = readHistory()
+        val trackHistory = readHistory().toMutableList()
         if (trackHistory.size == MAX_SIZE) {
             trackHistory.removeAt(trackHistory.lastIndex)
         }
@@ -22,7 +24,7 @@ class SearchHistory(private val sharedPreferences: SharedPreferences) {
         }
         trackHistory.add(0, track)
         sharedPreferences.edit {
-            putString(TRACK_HISTORY_KEY, Gson().toJson(trackHistory))
+            putString(TRACK_HISTORY_KEY, gson.toJson(trackHistory))
         }
     }
 

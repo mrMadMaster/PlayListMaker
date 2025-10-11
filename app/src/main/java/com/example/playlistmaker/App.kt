@@ -8,7 +8,7 @@ import androidx.core.content.edit
 class App : Application() {
 
     private lateinit var sharedPreferences: SharedPreferences
-    var darkTheme = false
+    private var darkTheme = false
 
     override fun onCreate() {
         super.onCreate()
@@ -30,6 +30,10 @@ class App : Application() {
                 AppCompatDelegate.MODE_NIGHT_NO
             }
         )
+    }
+
+    fun getCurrentTheme(): Boolean {
+        return darkTheme
     }
 
     companion object {
