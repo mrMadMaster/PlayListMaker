@@ -8,4 +8,6 @@
     <color name="text">#FFFFFFFF</color>
     <color name="main_background">#1A1B22</color>
     <color name="background">#1A1B22</color>
+    <color name="switch_track">#9FBBF3</color>
+    <color name="switch_thumb">#3772E7</color>
 </resources>

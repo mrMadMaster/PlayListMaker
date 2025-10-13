@@ -98,4 +98,38 @@
         <TextView style="@style/ErrorText"
             android:text="@string/not_found" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/searchHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="132dp">
+
+        <TextView
+            style="@style/Text19"
+            android:textFontWeight="500"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/search_history"
+            android:gravity="center_horizontal"
+            android:paddingTop="18dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tracksHistory"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="@dimen/icon_padding"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <Button
+            style="@style/ClearHistoryButton"
+            android:id="@+id/clearHistoryButton"
+            android:text="@string/clear_history"
+            android:layout_marginVertical="@dimen/top_padding"
+            android:layout_gravity="center"/>
+
+    </LinearLayout>
 </FrameLayout>
