@@ -10,4 +10,5 @@
     <color name="background">#FFFFFFFF</color>
     <color name="switch_track">#E6E8EB</color>
     <color name="switch_thumb">#AEAFB4</color>
+    <color name="button">#1A1B22</color>
 </resources>
