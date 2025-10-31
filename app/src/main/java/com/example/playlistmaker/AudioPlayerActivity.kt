@@ -54,7 +54,8 @@ class AudioPlayerActivity : AppCompatActivity() {
     }
 
     fun showTrack(){
-        val track = intent.getSerializableExtra(TRACK_EXTRA) as? Track
+        @Suppress("DEPRECATION")
+        val track = intent.getParcelableExtra<Track>("TRACK")
 
         if (track != null) {
             trackName.text = track.trackName
@@ -96,9 +97,5 @@ class AudioPlayerActivity : AppCompatActivity() {
                 .transform(RoundedCorners(resources.getDimensionPixelSize(R.dimen.cover_radius)))
                 .into(artwork)
         }
-    }
-
-    companion object {
-        const val TRACK_EXTRA = "track_extra"
     }
 }

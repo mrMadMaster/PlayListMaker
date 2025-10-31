@@ -192,7 +192,7 @@ class SearchActivity : AppCompatActivity() {
         history()
         hideKeyboard()
         startActivity(Intent(this, AudioPlayerActivity::class.java).putExtra(
-                AudioPlayerActivity.TRACK_EXTRA,
+                "TRACK",
                 track
             ))
     }
