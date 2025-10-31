@@ -1,5 +1,6 @@
 package com.example.playlistmaker
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -190,6 +191,10 @@ class SearchActivity : AppCompatActivity() {
         searchHistory.writeHistory(track)
         history()
         hideKeyboard()
+        startActivity(Intent(this, AudioPlayerActivity::class.java).putExtra(
+                "TRACK",
+                track
+            ))
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
