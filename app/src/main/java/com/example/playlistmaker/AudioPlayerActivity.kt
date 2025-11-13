@@ -31,17 +31,18 @@ class AudioPlayerActivity : AppCompatActivity() {
     private lateinit var primaryGenreNameGroup: Group
     private lateinit var countryGroup: Group
     private lateinit var startStopButton: ImageView
-    private var playerState = STATE_DEFAULT
+    private var playerState = PlayerState.DEFAULT
     private var mediaPlayer = MediaPlayer()
     private val handler = Handler(Looper.getMainLooper())
 
+    private val timeFormatter by lazy {
+        SimpleDateFormat("mm:ss", Locale.getDefault())
+    }
+
     private val trackTimerRunnable = object : Runnable {
         override fun run() {
-            if (playerState == STATE_PLAYING) {
-                remainingTime.text = SimpleDateFormat(
-                    "mm:ss",
-                    Locale.getDefault()
-                ).format(mediaPlayer.currentPosition)
+            if (playerState == PlayerState.PLAYING) {
+                remainingTime.text = timeFormatter.format(mediaPlayer.currentPosition)
                 handler.postDelayed(this, UPDATE_INTERVAL)
             }
         }
@@ -88,21 +89,18 @@ class AudioPlayerActivity : AppCompatActivity() {
         if (track != null) {
             trackName.text = track.trackName
             artistName.text = track.artistName
-            trackTime.text = SimpleDateFormat(
-                "mm:ss",
-                Locale.getDefault()
-            ).format(track.trackTimeMillis.toLong())
+            trackTime.text = timeFormatter.format(track.trackTimeMillis.toLong())
             mediaPlayer.setDataSource(track.previewUrl)
             mediaPlayer.prepareAsync()
 
             mediaPlayer.setOnPreparedListener {
                 startStopButton.isEnabled = true
-                playerState = STATE_PREPARED
+                playerState = PlayerState.PREPARED
                 changeStartStopIcon()
             }
 
             mediaPlayer.setOnCompletionListener {
-                playerState = STATE_PREPARED
+                playerState = PlayerState.PREPARED
                 stopTrackTimer()
                 changeStartStopIcon()
                 remainingTime.text = getString(R.string.remainingTime)
@@ -144,26 +142,27 @@ class AudioPlayerActivity : AppCompatActivity() {
 
     private fun startPlayer() {
         mediaPlayer.start()
-        playerState = STATE_PLAYING
+        playerState = PlayerState.PLAYING
         startTrackTimer()
         changeStartStopIcon()
     }
 
     private fun pausePlayer() {
         mediaPlayer.pause()
-        playerState = STATE_PAUSED
+        playerState = PlayerState.PAUSED
         stopTrackTimer()
         changeStartStopIcon()
     }
 
     private fun playbackControl() {
         when(playerState) {
-            STATE_PLAYING -> {
+            PlayerState.PLAYING -> {
                 pausePlayer()
             }
-            STATE_PREPARED, STATE_PAUSED -> {
+            PlayerState.PREPARED, PlayerState.PAUSED -> {
                 startPlayer()
             }
+            PlayerState.DEFAULT -> {}
         }
     }
 
@@ -192,11 +191,14 @@ class AudioPlayerActivity : AppCompatActivity() {
         )
     }
 
+    enum class PlayerState {
+        DEFAULT,
+        PREPARED,
+        PLAYING,
+        PAUSED
+    }
+
     companion object {
-        private const val STATE_DEFAULT = 0
-        private const val STATE_PREPARED = 1
-        private const val STATE_PLAYING = 2
-        private const val STATE_PAUSED = 3
         private const val UPDATE_INTERVAL = 300L
     }
 }

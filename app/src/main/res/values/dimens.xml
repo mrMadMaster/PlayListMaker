@@ -20,4 +20,5 @@
     <dimen name="ic_6">6dp</dimen>
     <dimen name="ic_4">4dp</dimen>
     <dimen name="cover_radius">8dp</dimen>
+    <dimen name="progressBar_size">44dp</dimen>
 </resources>

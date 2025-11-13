@@ -249,6 +249,11 @@ class SearchActivity : AppCompatActivity() {
         currentEditText = savedInstanceState.getString(EDITTEXT_KEY, currentEditText)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(searchRunnable)
+    }
+
     companion object {
         private const val EDITTEXT_KEY = "EDITTEXT_KEY"
         private const val EDITTEXT_DEF = ""
