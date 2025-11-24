@@ -11,4 +11,5 @@
     <color name="switch_track">#9FBBF3</color>
     <color name="switch_thumb">#3772E7</color>
     <color name="button">#AEAFB4</color>
+    <color name="progress_bar">#3772E7</color>
 </resources>

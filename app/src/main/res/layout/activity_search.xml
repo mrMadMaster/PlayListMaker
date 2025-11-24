@@ -66,6 +66,14 @@
             android:layout_gravity="center_vertical|end" />
     </FrameLayout>
 
+    <ProgressBar android:id="@+id/progressBar"
+        android:layout_width="@dimen/progressBar_size"
+        android:layout_height="@dimen/progressBar_size"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="248dp"
+        android:indeterminateTint="@color/progress_bar"
+        android:visibility="gone"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/tracks"
         android:layout_width="match_parent"
