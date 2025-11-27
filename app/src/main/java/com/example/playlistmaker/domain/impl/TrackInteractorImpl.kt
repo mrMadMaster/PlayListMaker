@@ -2,6 +2,7 @@ package com.example.playlistmaker.domain.impl
 
 import com.example.playlistmaker.domain.api.interactor.TrackInteractor
 import com.example.playlistmaker.domain.api.repository.TrackRepository
+import com.example.playlistmaker.domain.models.Track
 import java.util.concurrent.Executors
 
 class TrackInteractorImpl(
@@ -19,5 +20,17 @@ class TrackInteractorImpl(
                 consumer.onSearchError(exception)
             }
         }
+    }
+
+    override fun getSearchHistory(): List<Track> {
+        return trackRepository.getSearchHistory()
+    }
+
+    override fun addToSearchHistory(track: Track) {
+        trackRepository.addToSearchHistory(track)
+    }
+
+    override fun clearSearchHistory() {
+        trackRepository.clearSearchHistory()
     }
 }

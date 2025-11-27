@@ -18,7 +18,6 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.example.playlistmaker.R
-import com.example.playlistmaker.domain.api.interactor.SearchHistoryInteractor
 import com.example.playlistmaker.domain.api.interactor.TrackInteractor
 import com.example.playlistmaker.domain.models.Track
 import com.example.playlistmaker.presentation.creator.Creator
@@ -28,7 +27,6 @@ class SearchActivity : AppCompatActivity() {
 
     private var currentEditText: String = EDITTEXT_DEF
 
-    private lateinit var searchHistoryInteractor: SearchHistoryInteractor
     private lateinit var trackInteractor: TrackInteractor
     private lateinit var inputEditText: EditText
     private lateinit var nothingFoundLayout: LinearLayout
@@ -49,8 +47,7 @@ class SearchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
-        trackInteractor = Creator.provideTrackInteractor()
-        searchHistoryInteractor = Creator.provideSearchHistoryInteractor(this)
+        trackInteractor = Creator.provideTrackInteractor(this)
 
         val backButton = findViewById<ImageButton>(R.id.back)
         val clearButton = findViewById<ImageView>(R.id.clear)
@@ -83,7 +80,7 @@ class SearchActivity : AppCompatActivity() {
         }
 
         clearHistoryButton.setOnClickListener {
-            searchHistoryInteractor.clearHistory()
+            trackInteractor.clearSearchHistory()
             historyList.clear()
             historyAdapter.notifyDataSetChanged()
             searchHistoryLayout.visibility = View.GONE
@@ -103,7 +100,7 @@ class SearchActivity : AppCompatActivity() {
             false
         }
 
-        history()
+        loadSearchHistory()
 
         val simpleTextWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -202,9 +199,9 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    private fun history(){
+    private fun loadSearchHistory(){
         historyList.clear()
-        historyList.addAll(searchHistoryInteractor.readHistory())
+        historyList.addAll(trackInteractor.getSearchHistory())
         historyAdapter.notifyDataSetChanged()
     }
 
@@ -224,8 +221,8 @@ class SearchActivity : AppCompatActivity() {
 
     private fun onTrackClick(track: Track){
         if (clickDebounce()) {
-            searchHistoryInteractor.writeHistory(track)
-            history()
+            trackInteractor.addToSearchHistory(track)
+            loadSearchHistory()
             hideKeyboard()
             startActivity(
                 Intent(this, AudioPlayerActivity::class.java).putExtra(
