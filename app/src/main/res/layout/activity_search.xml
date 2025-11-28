@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/background"
-    tools:context=".SearchActivity">
+    tools:context=".presentation.ui.search.SearchActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
