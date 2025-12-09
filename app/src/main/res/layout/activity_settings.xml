@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/background"
-    tools:context=".presentation.ui.settings.SettingsActivity">
+    tools:context=".settings.ui.activity.SettingsActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -86,11 +86,11 @@
         <TextView
             style="@style/SettingsButtonsText"
             android:text="@string/user_agreement"
-            android:layout_toStartOf="@+id/user_agreement" />
+            android:layout_toStartOf="@+id/agreement" />
 
         <ImageView
             style="@style/SettingsButtonsImage"
-            android:id="@+id/user_agreement"
+            android:id="@+id/agreement"
             android:src="@drawable/ic_user_agreement_24"
             android:contentDescription="@string/user_agreement" />
     </RelativeLayout>
