@@ -116,7 +116,6 @@ class SearchViewModel(
 
         sealed class Error : SearchState() {
             object NoConnection : Error()
-            object Timeout : Error()
             data class NetworkError(val message: String) : Error()
         }
     }

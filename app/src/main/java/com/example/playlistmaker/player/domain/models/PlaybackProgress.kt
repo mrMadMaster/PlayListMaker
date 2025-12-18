@@ -1,5 +1,7 @@
 package com.example.playlistmaker.player.domain.models
 
+import java.util.Locale
+
 data class PlaybackProgress(
     val currentPosition: Int,
     val duration: Int,
@@ -20,7 +22,7 @@ data class PlaybackProgress(
             val totalSeconds = milliseconds / 1000
             val minutes = totalSeconds / 60
             val seconds = totalSeconds % 60
-            return String.format("%02d:%02d", minutes, seconds)
+            return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
         }
     }
 }

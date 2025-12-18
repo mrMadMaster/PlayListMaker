@@ -3,7 +3,6 @@ package com.example.playlistmaker.creator
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.playlistmaker.R
 import com.example.playlistmaker.search.data.network.RetrofitNetworkClient
 import com.example.playlistmaker.search.data.network.NetworkClient
 import com.example.playlistmaker.search.data.repository.TrackRepositoryImpl
@@ -16,9 +15,11 @@ import com.example.playlistmaker.settings.domain.interactor.impl.SettingsInterac
 import com.example.playlistmaker.settings.domain.repository.SettingsRepository
 import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
 import com.example.playlistmaker.sharing.data.impl.ExternalNavigatorImpl
+import com.example.playlistmaker.sharing.data.provider.ResourceSharingConfigProvider
+import com.example.playlistmaker.sharing.data.provider.SharingConfigProvider
 import com.example.playlistmaker.sharing.domain.interactor.impl.SharingInteractorImpl
 import com.example.playlistmaker.sharing.domain.interactor.SharingInteractor
-import com.example.playlistmaker.sharing.domain.model.EmailData
+import com.example.playlistmaker.sharing.domain.navigator.ExternalNavigator
 
 object Creator {
 
@@ -53,15 +54,18 @@ object Creator {
         return SettingsInteractorImpl(settingsRepository)
     }
 
+    fun provideExternalNavigator(context: Context): ExternalNavigator {
+        return ExternalNavigatorImpl(context)
+    }
+
+    fun provideSharingConfigProvider(context: Context): SharingConfigProvider {
+        return ResourceSharingConfigProvider(context)
+    }
+
     fun provideSharingInteractor(context: Context): SharingInteractor {
-        val externalNavigator = ExternalNavigatorImpl(context)
-        val config = EmailData(
-            playStoreUrl = context.getString(R.string.practicum),
-            userAgreementUrl = context.getString(R.string.practicum_offer_ru),
-            supportEmail = context.getString(R.string.email),
-            message = context.getString(R.string.message_to_developer),
-            messageTitle = context.getString(R.string.theme_message_to_developer)
-        )
+        val externalNavigator = provideExternalNavigator(context)
+        val configProvider = provideSharingConfigProvider(context)
+        val config = configProvider.getSharingConfig()
 
         return SharingInteractorImpl(externalNavigator, config)
     }

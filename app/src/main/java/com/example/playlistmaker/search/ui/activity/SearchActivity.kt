@@ -101,7 +101,6 @@ class SearchActivity : AppCompatActivity() {
 
         viewModel.searchHistory.observe(this) { history ->
             historyAdapter.updateTracks(history)
-            historyAdapter.notifyDataSetChanged()
             updateHistoryVisibility(history)
         }
 
@@ -129,19 +128,12 @@ class SearchActivity : AppCompatActivity() {
                 }
                 is SearchViewModel.SearchState.Content -> {
                     searchAdapter.updateTracks(state.tracks)
-                    searchAdapter.notifyDataSetChanged()
                     tracks.isVisible = true
                     nothingFound.isVisible = false
                     noConnection.isVisible = false
                     searchHistory.isVisible = false
                 }
                 is SearchViewModel.SearchState.Error.NoConnection -> {
-                    tracks.isVisible = false
-                    nothingFound.isVisible = false
-                    noConnection.isVisible = true
-                    searchHistory.isVisible = false
-                }
-                is SearchViewModel.SearchState.Error.Timeout -> {
                     tracks.isVisible = false
                     nothingFound.isVisible = false
                     noConnection.isVisible = true
