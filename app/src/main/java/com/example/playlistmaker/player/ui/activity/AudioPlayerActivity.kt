@@ -32,7 +32,7 @@ class AudioPlayerActivity : AppCompatActivity() {
     }
 
     private fun loadTrackFromIntent() {
-        val track = intent.getParcelableExtra<Track>("TRACK")
+        val track = intent.getParcelableExtra<Track>(TRACK_EXTRA_KEY)
         if (track != null) {
             displayTrackInfo(track)
             viewModel.setupTrack(track)
@@ -169,6 +169,10 @@ class AudioPlayerActivity : AppCompatActivity() {
         if (viewModel.playerState.value is PlayerState.Playing) {
             viewModel.togglePlayback()
         }
+    }
+
+    companion object {
+        const val TRACK_EXTRA_KEY = "TRACK"
     }
 
 }

@@ -6,12 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.settings.domain.interactor.SettingsInteractor
 import kotlinx.coroutines.launch
-
-
-
-
 import com.example.playlistmaker.sharing.domain.interactor.SharingInteractor
-
 
 class SettingsViewModel(
     private val settingsInteractor: SettingsInteractor,
@@ -22,10 +17,6 @@ class SettingsViewModel(
     val themeState: LiveData<Boolean> = _themeState
 
     private val _uiState = MutableLiveData<SettingsUiState>()
-
-    init {
-        loadThemeState()
-    }
 
     fun loadThemeState() {
         viewModelScope.launch {

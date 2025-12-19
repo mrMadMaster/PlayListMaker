@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.playlistmaker.creator.Creator
 import com.example.playlistmaker.databinding.ActivitySearchBinding
 import com.example.playlistmaker.player.ui.activity.AudioPlayerActivity
+import com.example.playlistmaker.player.ui.activity.AudioPlayerActivity.Companion.TRACK_EXTRA_KEY
+import com.example.playlistmaker.search.domain.models.SearchState
 import com.example.playlistmaker.search.domain.models.Track
 import com.example.playlistmaker.search.ui.activity.adapter.TrackAdapter
 import com.example.playlistmaker.search.ui.viewmodel.SearchViewModel
@@ -109,37 +111,37 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleSearchState(state: SearchViewModel.SearchState) {
+    private fun handleSearchState(state: SearchState) {
         with(binding) {
             when (state) {
-                is SearchViewModel.SearchState.Empty -> {
+                is SearchState.Empty -> {
                     showSearchHistory()
                 }
-                is SearchViewModel.SearchState.Loading -> {
+                is SearchState.Loading -> {
                     tracks.isVisible = false
                     nothingFound.isVisible = false
                     noConnection.isVisible = false
                 }
-                is SearchViewModel.SearchState.EmptyResult -> {
+                is SearchState.EmptyResult -> {
                     tracks.isVisible = false
                     nothingFound.isVisible = true
                     noConnection.isVisible = false
                     searchHistory.isVisible = false
                 }
-                is SearchViewModel.SearchState.Content -> {
+                is SearchState.Content -> {
                     searchAdapter.updateTracks(state.tracks)
                     tracks.isVisible = true
                     nothingFound.isVisible = false
                     noConnection.isVisible = false
                     searchHistory.isVisible = false
                 }
-                is SearchViewModel.SearchState.Error.NoConnection -> {
+                is SearchState.Error.NoConnection -> {
                     tracks.isVisible = false
                     nothingFound.isVisible = false
                     noConnection.isVisible = true
                     searchHistory.isVisible = false
                 }
-                is SearchViewModel.SearchState.Error.NetworkError -> {
+                is SearchState.Error.NetworkError -> {
                     tracks.isVisible = false
                     nothingFound.isVisible = false
                     noConnection.isVisible = true
@@ -162,7 +164,7 @@ class SearchActivity : AppCompatActivity() {
         hideKeyboard()
         startActivity(
             Intent(this, AudioPlayerActivity::class.java)
-                .putExtra("TRACK", track)
+                .putExtra(TRACK_EXTRA_KEY, track)
         )
     }
 

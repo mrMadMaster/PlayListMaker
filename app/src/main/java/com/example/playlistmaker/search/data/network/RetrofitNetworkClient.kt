@@ -2,6 +2,7 @@ package com.example.playlistmaker.search.data.network
 
 import com.example.playlistmaker.search.data.dto.Response
 import com.example.playlistmaker.search.data.dto.TrackSearchRequest
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -29,8 +30,8 @@ class RetrofitNetworkClient : NetworkClient {
 
     companion object {
         private const val ITUNES_URL = "https://itunes.apple.com"
-        private fun provideOkHttpClient(): okhttp3.OkHttpClient {
-            return okhttp3.OkHttpClient.Builder()
+        private fun provideOkHttpClient(): OkHttpClient {
+            return OkHttpClient.Builder()
                 .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                 .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                 .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
