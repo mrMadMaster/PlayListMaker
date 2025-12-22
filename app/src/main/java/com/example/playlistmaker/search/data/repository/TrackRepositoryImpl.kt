@@ -15,10 +15,10 @@ import com.google.gson.reflect.TypeToken
 
 class TrackRepositoryImpl(
     private val networkClient: NetworkClient,
-    private val sharedPreferences: SharedPreferences
+    private val sharedPreferences: SharedPreferences,
+    private val gson: Gson
 ) : TrackRepository {
 
-    private val gson = Gson()
 
     override fun searchTracks(searchQuery: String): List<Track> {
         val searchRequest = TrackSearchRequest(searchQuery)
@@ -87,7 +87,7 @@ class TrackRepositoryImpl(
     }
 
     companion object {
-        private const val SEARCH_HISTORY_KEY = "search_history"
+        const val SEARCH_HISTORY_KEY = "search_history"
         private const val MAX_SEARCH_HISTORY_SIZE = 10
     }
 }

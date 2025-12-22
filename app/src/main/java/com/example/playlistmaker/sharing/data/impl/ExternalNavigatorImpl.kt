@@ -14,6 +14,7 @@ class ExternalNavigatorImpl (
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/url"
             putExtra(Intent.EXTRA_TEXT, emailData.playStoreUrl)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
 
         context.startActivity(shareIntent)
@@ -25,12 +26,15 @@ class ExternalNavigatorImpl (
             putExtra(Intent.EXTRA_EMAIL, arrayOf(emailData.supportEmail))
             putExtra(Intent.EXTRA_SUBJECT, emailData.messageTitle)
             putExtra(Intent.EXTRA_TEXT, emailData.message)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         context.startActivity(emailIntent)
     }
 
     override fun openLink(emailData: EmailData) {
-        val browserIntent = Intent(Intent.ACTION_VIEW, emailData.userAgreementUrl.toUri())
+        val browserIntent = Intent(Intent.ACTION_VIEW, emailData.userAgreementUrl.toUri()).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
         context.startActivity(browserIntent)
     }
 }
