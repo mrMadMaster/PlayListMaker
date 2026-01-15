@@ -166,4 +166,35 @@
         <item name="android:backgroundTint">@color/text</item>
         <item name="android:textColor">@color/background</item>
     </style>
+    <style name="TabLayoutStyle" parent="Widget.Material3.TabLayout">
+        <item name="tabTextAppearance">@style/TabLayoutText</item>
+        <item name="tabTextColor">@color/text</item>
+        <item name="tabIndicatorColor">@color/text</item>
+        <item name="android:background">@color/background</item>
+        <item name="tabMode">fixed</item>
+        <item name="tabIndicatorFullWidth">true</item>
+    </style>
+    <style name="TabLayoutText" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/ys_display_medium</item>
+        <item name="android:textFontWeight">500</item>
+    </style>
+    <style name="NewPlaylistButton" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+        <item name="android:layout_width">133dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:layout_marginTop">@dimen/top_padding</item>
+        <item name="cornerRadius">54dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:backgroundTint">@color/text</item>
+        <item name="android:paddingStart">@dimen/icon_padding</item>
+        <item name="android:paddingEnd">@dimen/ic_6</item>
+        <item name="android:paddingVertical">@dimen/ic_6</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/background</item>
+        <item name="android:fontFamily">@font/ys_display_medium</item>
+        <item name="android:textFontWeight">500</item>
+    </style>
 </resources>
