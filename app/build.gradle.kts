@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.koin.android)
+    implementation(libs.androidx.viewpager2)
+    implementation(libs.androidx.fragment.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
