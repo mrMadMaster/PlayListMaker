@@ -1,7 +1,7 @@
 package com.example.playlistmaker.di
 
-import com.example.playlistmaker.medialibrary.ui.viewmodel.FavoritesViewModel
-import com.example.playlistmaker.medialibrary.ui.viewmodel.PlaylistsViewModel
+import com.example.playlistmaker.mediaLibrary.ui.viewmodel.FavoritesViewModel
+import com.example.playlistmaker.mediaLibrary.ui.viewmodel.PlaylistsViewModel
 import com.example.playlistmaker.search.ui.viewmodel.SearchViewModel
 import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
 import org.koin.core.module.dsl.viewModel

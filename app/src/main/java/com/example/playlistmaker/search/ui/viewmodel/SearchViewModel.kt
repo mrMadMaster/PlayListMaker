@@ -100,6 +100,7 @@ class SearchViewModel(
         searchJob?.cancel()
         debounceJob?.cancel()
         _isSearching.value = false
+        _searchState.value = SearchState.Empty
     }
 
     companion object {

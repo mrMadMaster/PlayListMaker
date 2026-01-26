@@ -6,22 +6,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/background"
-    tools:context=".search.ui.activity.SearchActivity">
+    tools:context=".search.ui.fragments.SearchFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="4dp">
+        android:layout_height="@dimen/medium_size">
 
-        <ImageButton style="@style/BackButton"
-            android:id="@+id/back"
-            android:contentDescription="@string/title" />
-
-        <TextView style="@style/Text22"
+        <TextView
+            style="@style/Text22"
             android:text="@string/search"
-            android:layout_marginStart="@dimen/small_padding"
-            android:layout_marginTop="10dp"
-            android:layout_toEndOf="@+id/back"/>
+            android:layout_marginStart="@dimen/medium_padding"
+            android:layout_marginTop="@dimen/medium14_padding"/>
     </RelativeLayout>
 
     <FrameLayout
