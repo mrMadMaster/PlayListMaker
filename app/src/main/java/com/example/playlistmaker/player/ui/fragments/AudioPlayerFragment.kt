@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -16,6 +17,8 @@ import com.example.playlistmaker.player.domain.models.PlaybackProgress
 import com.example.playlistmaker.player.domain.models.PlayerState
 import com.example.playlistmaker.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.search.domain.models.Track
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -118,9 +121,11 @@ class AudioPlayerFragment : Fragment() {
             updatePlayerState(state)
         }
 
-        viewModel.playbackProgress.observe(viewLifecycleOwner) { progress ->
-            updatePlaybackProgress(progress)
-        }
+        viewModel.playbackProgress
+            .onEach { progress ->
+                updatePlaybackProgress(progress)
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun updatePlayerState(state: PlayerState) {
@@ -149,7 +154,7 @@ class AudioPlayerFragment : Fragment() {
         val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
         val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
                 TimeUnit.MINUTES.toSeconds(minutes)
-        return String.Companion.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     }
 
     override fun onPause() {

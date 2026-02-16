@@ -123,6 +123,10 @@ class SearchFragment : Fragment() {
                 binding.progressBar.isVisible = isSearching
             }
         }
+
+        binding.root.setOnClickListener {
+            hideKeyboard()
+        }
     }
 
     private fun handleSearchState(state: SearchState) {
@@ -169,12 +173,12 @@ class SearchFragment : Fragment() {
         hideKeyboard()
         val query = binding.searchText.text.toString()
         if (query.isNotEmpty()) {
-            viewModel.search(query)
+            viewModel.searchDebounced(query)
         }
     }
 
     private fun onTrackClick(track: Track) {
-        viewModel.addToSearchHistory(track)
+        viewModel.clickDebounced(track)
         hideKeyboard()
 
         val bundle = AudioPlayerFragment.createArguments(track)
@@ -186,10 +190,12 @@ class SearchFragment : Fragment() {
     }
 
     private fun showSearchHistory() {
-        binding.searchHistory.isVisible = true
-        binding.tracks.isVisible = false
-        binding.nothingFound.isVisible = false
-        binding.noConnection.isVisible = false
+        with(binding) {
+            searchHistory.isVisible = true
+            tracks.isVisible = false
+            nothingFound.isVisible = false
+            noConnection.isVisible = false
+        }
     }
 
     private fun updateHistoryVisibility(history: List<Track>) {

@@ -10,7 +10,10 @@ import com.example.playlistmaker.player.domain.models.PlaybackProgress
 import com.example.playlistmaker.search.domain.models.Track
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PlayerViewModel : ViewModel() {
@@ -18,8 +21,8 @@ class PlayerViewModel : ViewModel() {
     private val _playerState = MutableLiveData<PlayerState>(PlayerState.Idle)
     val playerState: LiveData<PlayerState> = _playerState
 
-    private val _playbackProgress = MutableLiveData<PlaybackProgress?>()
-    val playbackProgress: MutableLiveData<PlaybackProgress?> = _playbackProgress
+    private val _playbackProgress = MutableStateFlow<PlaybackProgress?>(null)
+    val playbackProgress: StateFlow<PlaybackProgress?> = _playbackProgress.asStateFlow()
 
     private var mediaPlayer: MediaPlayer? = null
     private var progressUpdateJob: Job? = null
@@ -33,7 +36,6 @@ class PlayerViewModel : ViewModel() {
 
         _playerState.value = PlayerState.Preparing
 
-
         mediaPlayer = MediaPlayer().apply {
             setDataSource(previewUrl)
             prepareAsync()
@@ -44,7 +46,6 @@ class PlayerViewModel : ViewModel() {
                     duration = duration,
                     canPlay = true
                 )
-                startProgressUpdates()
             }
 
             setOnCompletionListener {
@@ -52,7 +53,6 @@ class PlayerViewModel : ViewModel() {
                 stopProgressUpdates()
                 resetToBeginning()
             }
-
         }
     }
 
@@ -89,7 +89,7 @@ class PlayerViewModel : ViewModel() {
         stopProgressUpdates()
 
         progressUpdateJob = viewModelScope.launch {
-            while (isActive) {
+            while (true) {
                 updateProgress()
                 delay(PROGRESS_UPDATE_INTERVAL)
             }
@@ -106,7 +106,9 @@ class PlayerViewModel : ViewModel() {
         val duration = mediaPlayer?.duration ?: 0
 
         if (duration > 0) {
-            _playbackProgress.value = PlaybackProgress.create(currentPosition, duration)
+            _playbackProgress.update {
+                PlaybackProgress.create(currentPosition, duration)
+            }
         }
     }
 
@@ -115,7 +117,7 @@ class PlayerViewModel : ViewModel() {
         mediaPlayer?.release()
         mediaPlayer = null
         _playerState.value = PlayerState.Idle
-        _playbackProgress.value = null
+        _playbackProgress.update { null }
     }
 
     override fun onCleared() {
