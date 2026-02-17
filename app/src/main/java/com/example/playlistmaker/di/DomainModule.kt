@@ -1,5 +1,10 @@
 package com.example.playlistmaker.di
 
+import com.example.playlistmaker.player.domain.usecase.PrepareTrackUseCase
+import com.example.playlistmaker.player.domain.usecase.ReleasePlayerUseCase
+import com.example.playlistmaker.player.domain.usecase.SubscribeToPlaybackProgressUseCase
+import com.example.playlistmaker.player.domain.usecase.SubscribeToPlayerStateUseCase
+import com.example.playlistmaker.player.domain.usecase.TogglePlaybackUseCase
 import com.example.playlistmaker.search.domain.interactor.TrackInteractor
 import com.example.playlistmaker.search.domain.interactor.impl.TrackInteractorImpl
 import com.example.playlistmaker.settings.domain.interactor.SettingsInteractor
@@ -21,5 +26,11 @@ val domainModule = module {
     single<SharingInteractor> {
         SharingInteractorImpl(get(), get())
     }
+
+    factory { PrepareTrackUseCase(get()) }
+    factory { TogglePlaybackUseCase(get()) }
+    factory { SubscribeToPlayerStateUseCase(get()) }
+    factory { SubscribeToPlaybackProgressUseCase(get()) }
+    factory { ReleasePlayerUseCase(get()) }
 
 }
