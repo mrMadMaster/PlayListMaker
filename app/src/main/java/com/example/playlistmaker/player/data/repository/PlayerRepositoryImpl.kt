@@ -17,9 +17,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class PlayerRepositoryImpl : PlayerRepository {
+class PlayerRepositoryImpl (
+    private val mediaPlayer: MediaPlayer
+) : PlayerRepository {
 
-    private var mediaPlayer: MediaPlayer? = null
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private val _state = MutableStateFlow<PlayerState>(PlayerState.Idle)
@@ -30,38 +31,43 @@ class PlayerRepositoryImpl : PlayerRepository {
 
     private var progressUpdateJob: Job? = null
 
+    init {
+        setupListeners()
+    }
+
+    private fun setupListeners() {
+        mediaPlayer.setOnPreparedListener { mp ->
+            scope.launch {
+                _state.update { PlayerState.Ready(mp.duration) }
+                updateProgress()
+            }
+        }
+
+        mediaPlayer.setOnCompletionListener {
+            scope.launch {
+                _state.update { PlayerState.Completed }
+                stopProgressUpdates()
+                updateProgress(resetToZero = true)
+            }
+        }
+
+        mediaPlayer.setOnErrorListener { _, what, extra ->
+            scope.launch {
+                _state.update { PlayerState.Error("Error: $what, $extra") }
+            }
+            true
+        }
+    }
+
     override suspend fun prepare(url: String) {
         release()
 
         _state.update { PlayerState.Preparing }
 
         try {
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(url)
-                prepareAsync()
-
-                setOnPreparedListener { mp ->
-                    scope.launch {
-                        _state.update { PlayerState.Ready(mp.duration) }
-                        updateProgress()
-                    }
-                }
-
-                setOnCompletionListener {
-                    scope.launch {
-                        _state.update { PlayerState.Completed }
-                        stopProgressUpdates()
-                        updateProgress(resetToZero = true)
-                    }
-                }
-
-                setOnErrorListener { _, what, extra ->
-                    scope.launch {
-                        _state.update { PlayerState.Error("Error: $what, $extra") }
-                    }
-                    true
-                }
-            }
+            mediaPlayer.reset()
+            mediaPlayer.setDataSource(url)
+            mediaPlayer.prepareAsync()
         } catch (e: Exception) {
             _state.update { PlayerState.Error(e.message ?: "Unknown error") }
         }
@@ -70,18 +76,18 @@ class PlayerRepositoryImpl : PlayerRepository {
     override fun play() {
         when (_state.value) {
             is PlayerState.Ready -> {
-                mediaPlayer?.start()
+                mediaPlayer.start()
                 _state.update { PlayerState.Playing }
                 startProgressUpdates()
             }
             is PlayerState.Paused -> {
-                mediaPlayer?.start()
+                mediaPlayer.start()
                 _state.update { PlayerState.Playing }
                 startProgressUpdates()
             }
             PlayerState.Completed -> {
-                mediaPlayer?.seekTo(0)
-                mediaPlayer?.start()
+                mediaPlayer.seekTo(0)
+                mediaPlayer.start()
                 _state.update { PlayerState.Playing }
                 startProgressUpdates()
             }
@@ -91,7 +97,7 @@ class PlayerRepositoryImpl : PlayerRepository {
 
     override fun pause() {
         if (_state.value is PlayerState.Playing) {
-            mediaPlayer?.pause()
+            mediaPlayer.pause()
             _state.update { PlayerState.Paused }
             stopProgressUpdates()
             updateProgress()
@@ -108,8 +114,7 @@ class PlayerRepositoryImpl : PlayerRepository {
 
     override fun release() {
         stopProgressUpdates()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        mediaPlayer.reset()
         _state.update { PlayerState.Idle }
     }
 
@@ -133,15 +138,17 @@ class PlayerRepositoryImpl : PlayerRepository {
         val currentPosition = if (resetToZero) {
             0
         } else {
-            mediaPlayer?.currentPosition ?: 0
+            mediaPlayer.currentPosition
         }
 
-        val duration = mediaPlayer?.duration ?: 0
+        val duration = mediaPlayer.duration
 
-        scope.launch {
-            _playbackProgress.emit(
-                PlaybackProgress.create(currentPosition, duration)
-            )
+        if (duration > 0) {
+            scope.launch {
+                _playbackProgress.emit(
+                    PlaybackProgress.create(currentPosition, duration)
+                )
+            }
         }
     }
 }
