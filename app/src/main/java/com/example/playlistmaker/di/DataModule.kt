@@ -2,6 +2,9 @@ package com.example.playlistmaker.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.MediaPlayer
+import com.example.playlistmaker.player.data.repository.PlayerRepositoryImpl
+import com.example.playlistmaker.player.domain.repository.PlayerRepository
 import com.example.playlistmaker.search.data.network.ItunesApi
 import com.example.playlistmaker.search.data.network.NetworkClient
 import com.example.playlistmaker.search.data.network.RetrofitNetworkClient
@@ -52,6 +55,8 @@ val dataModule = module {
 
     factory { Gson() }
 
+    factory { MediaPlayer() }
+
     single<SharedPreferences>(named("search_prefs")) {
         androidContext().getSharedPreferences(SEARCH_HISTORY_KEY, Context.MODE_PRIVATE)
     }
@@ -72,6 +77,8 @@ val dataModule = module {
         SettingsRepositoryImpl(
             get(named("settings_prefs")))
     }
+
+    single<PlayerRepository> { PlayerRepositoryImpl(get()) }
 
     single<ExternalNavigator> {
         ExternalNavigatorImpl(

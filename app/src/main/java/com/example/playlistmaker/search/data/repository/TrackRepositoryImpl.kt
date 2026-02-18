@@ -12,6 +12,13 @@ import com.example.playlistmaker.search.domain.models.Track
 import com.example.playlistmaker.search.domain.repository.TrackRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class TrackRepositoryImpl(
     private val networkClient: NetworkClient,
@@ -19,42 +26,42 @@ class TrackRepositoryImpl(
     private val gson: Gson
 ) : TrackRepository {
 
-
-    override fun searchTracks(searchQuery: String): List<Track> {
+    override fun searchTracks(searchQuery: String): Flow<List<Track>> = flow {
         val searchRequest = TrackSearchRequest(searchQuery)
         val searchResponse = networkClient.doRequest(searchRequest)
 
-        return if (searchResponse.resultCode == 200) {
-            (searchResponse as TrackSearchResponse).results.map { trackDto ->
-                TrackMapper.map(trackDto)
+        when (searchResponse.resultCode) {
+            200 -> {
+                val tracks = (searchResponse as? TrackSearchResponse)?.results?.map { trackDto ->
+                    TrackMapper.map(trackDto)
+                } ?: emptyList()
+                emit(tracks)
             }
-        } else {
-            emptyList()
-        }
-    }
-
-    override fun getSearchHistory(): List<Track> {
-        val json = sharedPreferences.getString(SEARCH_HISTORY_KEY, null)
-        return if (json != null) {
-            try {
-                val type = object : TypeToken<List<SearchHistoryItem>>() {}.type
-                val historyItems = gson.fromJson<List<SearchHistoryItem>>(json, type) ?: emptyList()
-                SearchHistoryMapper.historyItemsToTracks(historyItems)
-            } catch (e: Exception) {
-                clearSearchHistory()
-                emptyList()
+            503, 504 -> {
+                throw when (searchResponse.resultCode) {
+                    503 -> UnknownHostException("No internet connection")
+                    504 -> SocketTimeoutException("Request timeout")
+                    else -> Exception("Network error")
+                }
             }
-        } else {
-            emptyList()
+            else -> {
+                emit(emptyList())
+            }
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
-    override fun addToSearchHistory(track: Track) {
+    override fun getSearchHistory(): Flow<List<Track>> = flow {
+        val history = getSearchHistoryItems().let { historyItems ->
+            SearchHistoryMapper.historyItemsToTracks(historyItems)
+        }
+        emit(history)
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun addToSearchHistory(track: Track) = withContext(Dispatchers.IO) {
         val historyItem = SearchHistoryMapper.trackToHistoryItem(track)
         val currentHistory = getSearchHistoryItems().toMutableList()
 
         currentHistory.removeAll { it.trackId == historyItem.trackId }
-
         currentHistory.add(0, historyItem.copy(addedAt = System.currentTimeMillis()))
 
         if (currentHistory.size > MAX_SEARCH_HISTORY_SIZE) {
@@ -64,7 +71,7 @@ class TrackRepositoryImpl(
         saveSearchHistoryItems(currentHistory)
     }
 
-    override fun clearSearchHistory() {
+    override suspend fun clearSearchHistory() = withContext(Dispatchers.IO) {
         sharedPreferences.edit {
             remove(SEARCH_HISTORY_KEY)
         }

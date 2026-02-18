@@ -6,31 +6,26 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentAudioPlayerBinding
-import com.example.playlistmaker.player.domain.models.PlaybackProgress
 import com.example.playlistmaker.player.domain.models.PlayerState
+import com.example.playlistmaker.player.ui.viewmodel.PlayerUiState
 import com.example.playlistmaker.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.search.domain.models.Track
-import java.util.Locale
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AudioPlayerFragment : Fragment() {
 
     private var _binding: FragmentAudioPlayerBinding? = null
     private val binding get() = _binding!!
 
-    private val track: Track? by lazy {
-        arguments?.getParcelable(TRACK_ARG)
-    }
-
-    private val viewModel: PlayerViewModel by lazy {
-        ViewModelProvider(requireActivity())[PlayerViewModel::class.java]
-    }
+    private val viewModel: PlayerViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,14 +39,14 @@ class AudioPlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val currentTrack = track
-        if (currentTrack != null) {
-            displayTrackInfo(currentTrack)
-            viewModel.setupTrack(currentTrack)
+        val track = arguments?.getParcelable<Track>(TRACK_ARG)
+        if (track != null) {
+            displayTrackInfo(track)
             setupClickListeners()
-            setupObservers()
+            observeViewModel()
+            viewModel.setupTrack(track)
         } else {
-            parentFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
     }
 
@@ -59,7 +54,7 @@ class AudioPlayerFragment : Fragment() {
         with(binding) {
             trackName.text = track.trackName
             artistName.text = track.artistName
-            trackTime2.text = formatTime(track.trackTimeMillis.toLong())
+            trackTime2.text = viewModel.uiState.value.totalTime
 
             Glide.with(requireContext())
                 .load(track.getCoverArtwork())
@@ -69,29 +64,23 @@ class AudioPlayerFragment : Fragment() {
                 .transform(RoundedCorners(resources.getDimensionPixelSize(R.dimen.cover_radius)))
                 .into(cover)
 
-            displayOptionalInfo(track)
-        }
-    }
-
-    private fun displayOptionalInfo(track: Track) {
-        with(binding) {
             collectionNameGroup.isVisible = !track.collectionName.isNullOrEmpty()
-            if (collectionNameGroup.isVisible) {
+            collectionNameGroup.takeIf { it.isVisible }?.let {
                 collectionName2.text = track.collectionName
             }
 
             releaseDateGroup.isVisible = !track.releaseDate.isNullOrEmpty()
-            if (releaseDateGroup.isVisible) {
+            releaseDateGroup.takeIf { it.isVisible }?.let {
                 releaseDate2.text = track.releaseDate?.take(4)
             }
 
             primaryGenreNameGroup.isVisible = !track.primaryGenreName.isNullOrEmpty()
-            if (primaryGenreNameGroup.isVisible) {
+            primaryGenreNameGroup.takeIf { it.isVisible }?.let {
                 primaryGenreName2.text = track.primaryGenreName
             }
 
             countryGroup.isVisible = !track.country.isNullOrEmpty()
-            if (countryGroup.isVisible) {
+            countryGroup.takeIf { it.isVisible }?.let {
                 country2.text = track.country
             }
         }
@@ -113,48 +102,32 @@ class AudioPlayerFragment : Fragment() {
         }
     }
 
-    private fun setupObservers() {
-        viewModel.playerState.observe(viewLifecycleOwner) { state ->
-            updatePlayerState(state)
-        }
-
-        viewModel.playbackProgress.observe(viewLifecycleOwner) { progress ->
-            updatePlaybackProgress(progress)
-        }
-    }
-
-    private fun updatePlayerState(state: PlayerState) {
-        with(binding) {
-            startStop.isEnabled = when (state) {
-                is PlayerState.Idle, is PlayerState.Preparing -> false
-                else -> true
+    private fun observeViewModel() {
+        viewModel.uiState
+            .onEach { state ->
+                renderUiState(state)
             }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
 
+    private fun renderUiState(state: PlayerUiState) {
+        with(binding) {
+            remainingTime.text = state.currentTime
+            trackTime2.text = state.totalTime
+
+            startStop.isEnabled = state.isPlayButtonEnabled
             startStop.setImageResource(
-                when (state) {
-                    is PlayerState.Playing -> R.drawable.ic_stop_100
-                    else -> R.drawable.ic_start_100
-                }
+                if (state.isPlayButtonPlaying) R.drawable.ic_stop_100
+                else R.drawable.ic_start_100
             )
-        }
-    }
 
-    private fun updatePlaybackProgress(progress: PlaybackProgress?) {
-        progress?.let {
-            binding.remainingTime.text = it.formattedCurrent
+            remainingTime.visibility = if (state.showProgress) View.VISIBLE else View.INVISIBLE
         }
-    }
-
-    private fun formatTime(milliseconds: Long): String {
-        val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
-        val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
-                TimeUnit.MINUTES.toSeconds(minutes)
-        return String.Companion.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     }
 
     override fun onPause() {
         super.onPause()
-        if (viewModel.playerState.value is PlayerState.Playing) {
+        if (viewModel.uiState.value.playerState is PlayerState.Playing) {
             viewModel.togglePlayback()
         }
     }
@@ -166,6 +139,7 @@ class AudioPlayerFragment : Fragment() {
 
     companion object {
         const val TRACK_ARG = "track"
+
         fun createArguments(track: Track): Bundle {
             return Bundle().apply {
                 putParcelable(TRACK_ARG, track)
