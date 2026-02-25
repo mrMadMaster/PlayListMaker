@@ -48,6 +48,7 @@ class TrackAdapter(
                 trackName.text = track.trackName
                 artistName.text = track.artistName
                 trackTime.text = formatTime(track.trackTimeMillis.toLong())
+                artistName.requestLayout()
 
                 Glide.with(itemView)
                     .load(track.getCoverArtwork())

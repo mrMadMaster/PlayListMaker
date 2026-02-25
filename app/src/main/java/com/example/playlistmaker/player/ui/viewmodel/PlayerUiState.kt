@@ -6,8 +6,7 @@ import com.example.playlistmaker.search.domain.models.Track
 data class PlayerUiState(
     val playerState: PlayerState = PlayerState.Idle,
     val track: Track? = null,
-    val currentTime: String = "00:00",
-    val totalTime: String = "00:00"
+    val currentTime: String = "00:00"
 ) {
     val isPlayButtonEnabled: Boolean
         get() = when (playerState) {

@@ -2,6 +2,7 @@ package com.example.playlistmaker.search.data.repository
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
 import com.example.playlistmaker.search.data.network.NetworkClient
 import com.example.playlistmaker.search.data.dto.TrackSearchRequest
 import com.example.playlistmaker.search.data.dto.TrackSearchResponse
@@ -23,7 +24,8 @@ import java.net.UnknownHostException
 class TrackRepositoryImpl(
     private val networkClient: NetworkClient,
     private val sharedPreferences: SharedPreferences,
-    private val gson: Gson
+    private val gson: Gson,
+    private val appDatabase: AppDatabase
 ) : TrackRepository {
 
     override fun searchTracks(searchQuery: String): Flow<List<Track>> = flow {
@@ -32,8 +34,12 @@ class TrackRepositoryImpl(
 
         when (searchResponse.resultCode) {
             200 -> {
+                val favoriteIds = appDatabase.favoriteTrackDao().getAllFavoriteIds()
+
                 val tracks = (searchResponse as? TrackSearchResponse)?.results?.map { trackDto ->
-                    TrackMapper.map(trackDto)
+                    TrackMapper.map(trackDto).apply {
+                        isFavorite = favoriteIds.contains(trackId)
+                    }
                 } ?: emptyList()
                 emit(tracks)
             }
@@ -51,8 +57,14 @@ class TrackRepositoryImpl(
     }.flowOn(Dispatchers.IO)
 
     override fun getSearchHistory(): Flow<List<Track>> = flow {
+        val favoriteIds = appDatabase.favoriteTrackDao().getAllFavoriteIds()
+
         val history = getSearchHistoryItems().let { historyItems ->
-            SearchHistoryMapper.historyItemsToTracks(historyItems)
+            SearchHistoryMapper.historyItemsToTracks(historyItems).map { track ->
+                track.apply {
+                    isFavorite = favoriteIds.contains(trackId)
+                }
+            }
         }
         emit(history)
     }.flowOn(Dispatchers.IO)
