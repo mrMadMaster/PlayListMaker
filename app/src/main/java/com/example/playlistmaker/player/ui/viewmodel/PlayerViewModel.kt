@@ -54,14 +54,19 @@ class PlayerViewModel(
     fun setupTrack(track: Track) {
         currentTrack = track
 
-        _uiState.postValue(
-            _uiState.value?.copy(
-                track = track,
-                currentTime = "00:00"
-            )
-        )
+        viewModelScope.launch {
+            val favoriteIds = favoriteInteractor.getFavoriteIds()
+            val isTrackFavorite = favoriteIds.contains(track.trackId)
 
-        _isFavorite.postValue(track.isFavorite)
+            _uiState.postValue(
+                _uiState.value?.copy(
+                    track = track.apply { isFavorite = isTrackFavorite },
+                    currentTime = "00:00"
+                )
+            )
+
+            _isFavorite.postValue(isTrackFavorite)
+        }
 
         val previewUrl = track.previewUrl
         if (previewUrl.isNullOrEmpty()) {

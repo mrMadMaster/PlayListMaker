@@ -1,18 +1,19 @@
 package com.example.playlistmaker.mediaLibrary.data.repository
 
-import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
+import com.example.playlistmaker.mediaLibrary.data.db.dao.FavoriteTrackDao
 import com.example.playlistmaker.mediaLibrary.data.db.entity.FavoriteTrackEntity
 import com.example.playlistmaker.mediaLibrary.domain.repository.FavoriteRepository
 import com.example.playlistmaker.search.domain.models.Track
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class FavoriteRepositoryImpl(
-    private val appDatabase: AppDatabase
+    private val favoriteTrackDao: FavoriteTrackDao
 ) : FavoriteRepository {
 
     override suspend fun addToFavorites(track: Track) {
-        appDatabase.favoriteTrackDao().insertTrack(
+        favoriteTrackDao.insertTrack(
             FavoriteTrackEntity(
                 trackId = track.trackId,
                 trackName = track.trackName,
@@ -29,7 +30,7 @@ class FavoriteRepositoryImpl(
     }
 
     override suspend fun removeFromFavorites(track: Track) {
-        appDatabase.favoriteTrackDao().deleteTrack(
+        favoriteTrackDao.deleteTrack(
             FavoriteTrackEntity(
                 trackId = track.trackId,
                 trackName = track.trackName,
@@ -46,7 +47,8 @@ class FavoriteRepositoryImpl(
     }
 
     override fun getFavorites(): Flow<List<Track>> {
-        return appDatabase.favoriteTrackDao().getAllTracks()
+        return favoriteTrackDao.getAllTracks()
+            .distinctUntilChanged()
             .map { entities ->
                 entities.map { entity ->
                     Track(
@@ -63,5 +65,9 @@ class FavoriteRepositoryImpl(
                     ).apply { isFavorite = true }
                 }
             }
+    }
+
+    override suspend fun getFavoriteIds(): List<Int> {
+        return favoriteTrackDao.getAllFavoriteIds()
     }
 }

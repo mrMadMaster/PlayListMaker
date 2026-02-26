@@ -3,7 +3,9 @@ package com.example.playlistmaker.di
 import android.content.Context
 import android.content.SharedPreferences
 import android.media.MediaPlayer
+import androidx.room.Room
 import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
+import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase.Companion.DATABASE_NAME
 import com.example.playlistmaker.mediaLibrary.data.repository.FavoriteRepositoryImpl
 import com.example.playlistmaker.player.data.repository.PlayerRepositoryImpl
 import com.example.playlistmaker.mediaLibrary.domain.repository.FavoriteRepository
@@ -58,7 +60,11 @@ val dataModule = module {
     }
 
     single<AppDatabase> {
-        AppDatabase.getInstance(androidApplication())
+        Room.databaseBuilder(
+            androidApplication(),
+            AppDatabase::class.java,
+            DATABASE_NAME
+        ).build()
     }
 
     factory { Gson() }
@@ -77,7 +83,6 @@ val dataModule = module {
         TrackRepositoryImpl(
             get(),
             get(named("search_prefs")),
-            get(),
             get()
         )
     }
@@ -90,7 +95,9 @@ val dataModule = module {
     single<PlayerRepository> { PlayerRepositoryImpl(get()) }
 
     single<FavoriteRepository> {
-        FavoriteRepositoryImpl(get())
+        FavoriteRepositoryImpl(
+            favoriteTrackDao = get<AppDatabase>().favoriteTrackDao()
+        )
     }
 
     single<ExternalNavigator> {
