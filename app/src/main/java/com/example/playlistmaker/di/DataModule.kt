@@ -3,7 +3,12 @@ package com.example.playlistmaker.di
 import android.content.Context
 import android.content.SharedPreferences
 import android.media.MediaPlayer
+import androidx.room.Room
+import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
+import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase.Companion.DATABASE_NAME
+import com.example.playlistmaker.mediaLibrary.data.repository.FavoriteRepositoryImpl
 import com.example.playlistmaker.player.data.repository.PlayerRepositoryImpl
+import com.example.playlistmaker.mediaLibrary.domain.repository.FavoriteRepository
 import com.example.playlistmaker.player.domain.repository.PlayerRepository
 import com.example.playlistmaker.search.data.network.ItunesApi
 import com.example.playlistmaker.search.data.network.NetworkClient
@@ -21,6 +26,7 @@ import com.example.playlistmaker.sharing.domain.model.EmailData
 import com.example.playlistmaker.sharing.domain.navigator.ExternalNavigator
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
+import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -53,6 +59,14 @@ val dataModule = module {
         RetrofitNetworkClient(get())
     }
 
+    single<AppDatabase> {
+        Room.databaseBuilder(
+            androidApplication(),
+            AppDatabase::class.java,
+            DATABASE_NAME
+        ).build()
+    }
+
     factory { Gson() }
 
     factory { MediaPlayer() }
@@ -79,6 +93,12 @@ val dataModule = module {
     }
 
     single<PlayerRepository> { PlayerRepositoryImpl(get()) }
+
+    single<FavoriteRepository> {
+        FavoriteRepositoryImpl(
+            favoriteTrackDao = get<AppDatabase>().favoriteTrackDao()
+        )
+    }
 
     single<ExternalNavigator> {
         ExternalNavigatorImpl(
