@@ -1,8 +1,10 @@
 package com.example.playlistmaker.player.ui.viewmodel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.playlistmaker.player.domain.models.PlaybackProgress
+import com.example.playlistmaker.mediaLibrary.domain.interactor.FavoriteInteractor
 import com.example.playlistmaker.player.domain.models.PlayerState
 import com.example.playlistmaker.player.domain.usecase.PrepareTrackUseCase
 import com.example.playlistmaker.player.domain.usecase.ReleasePlayerUseCase
@@ -10,12 +12,8 @@ import com.example.playlistmaker.player.domain.usecase.SubscribeToPlaybackProgre
 import com.example.playlistmaker.player.domain.usecase.SubscribeToPlayerStateUseCase
 import com.example.playlistmaker.player.domain.usecase.TogglePlaybackUseCase
 import com.example.playlistmaker.search.domain.models.Track
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PlayerViewModel(
@@ -23,49 +21,58 @@ class PlayerViewModel(
     subscribeToProgressUseCase: SubscribeToPlaybackProgressUseCase,
     private val prepareTrackUseCase: PrepareTrackUseCase,
     private val togglePlaybackUseCase: TogglePlaybackUseCase,
-    private val releasePlayerUseCase: ReleasePlayerUseCase
+    private val releasePlayerUseCase: ReleasePlayerUseCase,
+    private val favoriteInteractor: FavoriteInteractor
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PlayerUiState())
-    val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableLiveData(PlayerUiState())
+    val uiState: LiveData<PlayerUiState> = _uiState
+
+    private val _isFavorite = MutableLiveData(false)
+    val isFavorite: LiveData<Boolean> = _isFavorite
+
+    private var currentTrack: Track? = null
 
     init {
         subscribeToStateUseCase()
             .onEach { playerState ->
-                _uiState.update { it.copy(playerState = playerState) }
+                _uiState.postValue(_uiState.value?.copy(playerState = playerState))
             }
             .launchIn(viewModelScope)
 
         subscribeToProgressUseCase()
             .onEach { progress ->
-                _uiState.update {
-                    it.copy(
+                _uiState.postValue(
+                    _uiState.value?.copy(
                         currentTime = progress.formattedCurrent
                     )
-                }
+                )
             }
             .launchIn(viewModelScope)
     }
 
     fun setupTrack(track: Track) {
-        val durationMillis = try {
-            track.trackTimeMillis.toIntOrNull() ?: 0
-        } catch (e: NumberFormatException) {
-            0
-        }
+        currentTrack = track
 
-        _uiState.update {
-            it.copy(
-                track = track,
-                totalTime = PlaybackProgress.formatTime(durationMillis)
+        viewModelScope.launch {
+            val favoriteIds = favoriteInteractor.getFavoriteIds()
+            val isTrackFavorite = favoriteIds.contains(track.trackId)
+
+            _uiState.postValue(
+                _uiState.value?.copy(
+                    track = track.apply { isFavorite = isTrackFavorite },
+                    currentTime = "00:00"
+                )
             )
+
+            _isFavorite.postValue(isTrackFavorite)
         }
 
         val previewUrl = track.previewUrl
         if (previewUrl.isNullOrEmpty()) {
-            _uiState.update {
-                it.copy(playerState = PlayerState.Error("error"))
-            }
+            _uiState.postValue(
+                _uiState.value?.copy(playerState = PlayerState.Error("error"))
+            )
             return
         }
 
@@ -76,6 +83,27 @@ class PlayerViewModel(
 
     fun togglePlayback() {
         togglePlaybackUseCase.invoke()
+    }
+
+    fun onFavoriteClicked() {
+        val track = currentTrack ?: return
+
+        viewModelScope.launch {
+            if (track.isFavorite) {
+                favoriteInteractor.removeFromFavorites(track)
+            } else {
+                favoriteInteractor.addToFavorites(track)
+            }
+
+            track.isFavorite = !track.isFavorite
+            _isFavorite.postValue(track.isFavorite)
+
+            _uiState.postValue(
+                _uiState.value?.copy(
+                    track = _uiState.value?.track?.apply { isFavorite = track.isFavorite }
+                )
+            )
+        }
     }
 
     override fun onCleared() {

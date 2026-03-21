@@ -6,18 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.FragmentAudioPlayerBinding
+import com.example.playlistmaker.player.domain.models.PlaybackProgress
 import com.example.playlistmaker.player.domain.models.PlayerState
 import com.example.playlistmaker.player.ui.viewmodel.PlayerUiState
 import com.example.playlistmaker.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.search.domain.models.Track
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AudioPlayerFragment : Fragment() {
@@ -54,7 +52,12 @@ class AudioPlayerFragment : Fragment() {
         with(binding) {
             trackName.text = track.trackName
             artistName.text = track.artistName
-            trackTime2.text = viewModel.uiState.value.totalTime
+            val durationMillis = try {
+                track.trackTimeMillis.toIntOrNull() ?: 0
+            } catch (e: NumberFormatException) {
+                0
+            }
+            trackTime2.text = PlaybackProgress.formatTime(durationMillis)
 
             Glide.with(requireContext())
                 .load(track.getCoverArtwork())
@@ -95,25 +98,30 @@ class AudioPlayerFragment : Fragment() {
             viewModel.togglePlayback()
         }
 
-        binding.toPlaylist.setOnClickListener {
+        binding.toFavourites.setOnClickListener {
+            viewModel.onFavoriteClicked()
         }
 
-        binding.toFavourites.setOnClickListener {
+        binding.toPlaylist.setOnClickListener {
         }
     }
 
     private fun observeViewModel() {
-        viewModel.uiState
-            .onEach { state ->
-                renderUiState(state)
+        viewModel.uiState.observe(viewLifecycleOwner) { uiState ->
+            viewModel.isFavorite.observe(viewLifecycleOwner) { isFavorite ->
+                renderUiState(uiState, isFavorite)
             }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        }
     }
 
-    private fun renderUiState(state: PlayerUiState) {
+    private fun renderUiState(state: PlayerUiState, isFavorite: Boolean) {
         with(binding) {
             remainingTime.text = state.currentTime
-            trackTime2.text = state.totalTime
+
+            toFavourites.setImageResource(
+                if (isFavorite) R.drawable.ic_favorite_filled
+                else R.drawable.ic_add_to_favourites_51
+            )
 
             startStop.isEnabled = state.isPlayButtonEnabled
             startStop.setImageResource(
@@ -127,7 +135,7 @@ class AudioPlayerFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if (viewModel.uiState.value.playerState is PlayerState.Playing) {
+        if (viewModel.uiState.value?.playerState is PlayerState.Playing) {
             viewModel.togglePlayback()
         }
     }

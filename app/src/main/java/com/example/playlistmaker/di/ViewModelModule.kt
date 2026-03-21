@@ -13,14 +13,15 @@ val viewModelModule = module {
     viewModel { SearchViewModel(get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { PlaylistsViewModel() }
-    viewModel { FavoritesViewModel() }
+    viewModel { FavoritesViewModel(favoriteInteractor = get()) }
     viewModel {
         PlayerViewModel(
             subscribeToStateUseCase = get(),
             subscribeToProgressUseCase = get(),
             prepareTrackUseCase = get(),
             togglePlaybackUseCase = get(),
-            releasePlayerUseCase = get()
+            releasePlayerUseCase = get(),
+            favoriteInteractor = get()
         )
     }
 }
