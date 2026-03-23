@@ -6,6 +6,10 @@ import android.media.MediaPlayer
 import androidx.room.Room
 import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
 import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase.Companion.DATABASE_NAME
+import com.example.playlistmaker.mediaLibrary.data.db.dao.FavoriteTrackDao
+import com.example.playlistmaker.mediaLibrary.data.db.dao.PlaylistDao
+import com.example.playlistmaker.mediaLibrary.data.db.dao.PlaylistTrackDao
+import com.example.playlistmaker.mediaLibrary.data.db.dao.TrackDao
 import com.example.playlistmaker.mediaLibrary.data.repository.FavoriteRepositoryImpl
 import com.example.playlistmaker.mediaLibrary.data.repository.PlaylistRepositoryImpl
 import com.example.playlistmaker.player.data.repository.PlayerRepositoryImpl
@@ -98,13 +102,23 @@ val dataModule = module {
 
     single<FavoriteRepository> {
         FavoriteRepositoryImpl(
-            favoriteTrackDao = get<AppDatabase>().favoriteTrackDao()
+            favoriteTrackDao = get(),
+            trackDao = get()
         )
     }
 
     single<PlaylistRepository> {
-        PlaylistRepositoryImpl(get())
+        PlaylistRepositoryImpl(
+            playlistDao = get(),
+            playlistTrackDao = get(),
+            trackDao = get()
+        )
     }
+
+    single<TrackDao> { get<AppDatabase>().trackDao() }
+    single<FavoriteTrackDao> { get<AppDatabase>().favoriteTrackDao() }
+    single<PlaylistDao> { get<AppDatabase>().playlistDao() }
+    single<PlaylistTrackDao> { get<AppDatabase>().playlistTrackDao() }
 
     single<ExternalNavigator> {
         ExternalNavigatorImpl(

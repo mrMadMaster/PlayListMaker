@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -21,6 +20,7 @@ import com.example.playlistmaker.player.domain.models.PlayerState
 import com.example.playlistmaker.player.ui.viewmodel.PlayerUiState
 import com.example.playlistmaker.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.search.domain.models.Track
+import com.example.playlistmaker.utils.CustomSnackbar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -121,6 +121,7 @@ class AudioPlayerFragment : Fragment() {
         val bottomSheet = binding.playlistsBottomSheet.root
         val density = resources.displayMetrics.density
         val peekHeightInPx = (505 * density).toInt()
+
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet).apply {
             state = BottomSheetBehavior.STATE_HIDDEN
             isHideable = true
@@ -130,7 +131,6 @@ class AudioPlayerFragment : Fragment() {
 
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-
                 if (!isAdded || _binding == null) return
 
                 when (newState) {
@@ -146,8 +146,6 @@ class AudioPlayerFragment : Fragment() {
             }
 
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                if (!isAdded || _binding == null) return
-                binding.overlay.alpha = slideOffset.coerceIn(0f, 1f)
             }
         })
 
@@ -166,12 +164,18 @@ class AudioPlayerFragment : Fragment() {
             findNavController().navigate(action)
         }
 
+        binding.overlay.setOnClickListener {
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
+
         binding.playlistsBottomSheet.root.visibility = View.GONE
+        binding.overlay.visibility = View.GONE
     }
 
     private fun showPlaylistBottomSheet() {
         viewModel.loadPlaylists()
         binding.playlistsBottomSheet.root.visibility = View.VISIBLE
+        binding.overlay.visibility = View.VISIBLE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
@@ -193,7 +197,7 @@ class AudioPlayerFragment : Fragment() {
 
         viewModel.addToPlaylistResult.observe(viewLifecycleOwner) { result ->
             result?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                CustomSnackbar.show(binding.root, it)
                 viewModel.clearAddToPlaylistResult()
 
                 if (it.startsWith("Добавлено")) {

@@ -40,6 +40,12 @@
         <item name="android:fontFamily">@font/ys_display_medium</item>
         <item name="android:textFontWeight">400</item>
     </style>
+    <style name="CustomSnackbarText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/background</item>
+        <item name="android:fontFamily">@font/ys_display_regular</item>
+        <item name="android:textFontWeight">400</item>
+    </style>
     <style name="TextView_13_MediaLibrary">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">32dp</item>

@@ -1,17 +1,23 @@
 package com.example.playlistmaker.mediaLibrary.data.repository
 
-import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
+import com.example.playlistmaker.mediaLibrary.data.db.dao.PlaylistDao
+import com.example.playlistmaker.mediaLibrary.data.db.dao.PlaylistTrackDao
+import com.example.playlistmaker.mediaLibrary.data.db.dao.TrackDao
 import com.example.playlistmaker.mediaLibrary.data.db.entity.PlaylistEntity
 import com.example.playlistmaker.mediaLibrary.data.db.entity.PlaylistTrackEntity
+import com.example.playlistmaker.mediaLibrary.data.db.entity.TrackEntity
 import com.example.playlistmaker.mediaLibrary.domain.models.Playlist
 import com.example.playlistmaker.mediaLibrary.domain.repository.PlaylistRepository
 import com.example.playlistmaker.search.domain.models.Track
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class PlaylistRepositoryImpl(
-    private val appDatabase: AppDatabase
+    private val playlistDao: PlaylistDao,
+    private val playlistTrackDao: PlaylistTrackDao,
+    private val trackDao: TrackDao
 ) : PlaylistRepository {
 
     override suspend fun createPlaylist(playlist: Playlist, coverPath: String?): Long {
@@ -20,20 +26,19 @@ class PlaylistRepositoryImpl(
             description = playlist.description,
             coverPath = coverPath
         )
-        return appDatabase.playlistDao().insertPlaylist(entity)
+        return playlistDao.insertPlaylist(entity)
     }
 
     override suspend fun addTrackToPlaylist(playlist: Playlist, track: Track): Boolean {
-        val existingTrack = appDatabase.playlistTrackDao()
+        val existingTrack = playlistTrackDao
             .getTrackByPlaylistAndTrack(playlist.id, track.trackId)
 
         if (existingTrack != null) {
             return false
         }
 
-        appDatabase.playlistTrackDao().insertTrack(
-            PlaylistTrackEntity(
-                playlistId = playlist.id,
+        trackDao.insertTrack(
+            TrackEntity(
                 trackId = track.trackId,
                 trackName = track.trackName,
                 artistName = track.artistName,
@@ -47,11 +52,19 @@ class PlaylistRepositoryImpl(
             )
         )
 
+        playlistTrackDao.insertTrack(
+            PlaylistTrackEntity(
+                playlistId = playlist.id,
+                trackId = track.trackId
+            )
+        )
+
         return true
     }
 
     override fun getAllPlaylists(): Flow<List<Playlist>> {
-        return appDatabase.playlistDao().getAllPlaylists()
+        return playlistDao.getAllPlaylists()
+            .distinctUntilChanged()
             .map { entities ->
                 entities.map { entity ->
                     Playlist(
@@ -66,8 +79,8 @@ class PlaylistRepositoryImpl(
     }
 
     override suspend fun getPlaylistById(id: Int): Playlist? {
-        val entity = appDatabase.playlistDao().getPlaylistById(id) ?: return null
-        val trackCount = appDatabase.playlistTrackDao().getTrackCount(id)
+        val entity = playlistDao.getPlaylistById(id) ?: return null
+        val trackCount = playlistTrackDao.getTrackCount(id)
 
         return Playlist(
             id = entity.id,
@@ -79,9 +92,16 @@ class PlaylistRepositoryImpl(
     }
 
     override suspend fun getPlaylistTracks(playlistId: Int): List<Track> {
-        val trackEntities = appDatabase.playlistTrackDao()
+        val trackLinks = playlistTrackDao
             .getTracksByPlaylistId(playlistId)
             .first()
+
+        if (trackLinks.isEmpty()) {
+            return emptyList()
+        }
+
+        val trackIds = trackLinks.map { it.trackId }
+        val trackEntities = trackDao.getTracksByIds(trackIds)
 
         return trackEntities.map { entity ->
             Track(
@@ -100,6 +120,6 @@ class PlaylistRepositoryImpl(
     }
 
     override suspend fun getTrackCount(playlistId: Int): Int {
-        return appDatabase.playlistTrackDao().getTrackCount(playlistId)
+        return playlistTrackDao.getTrackCount(playlistId)
     }
 }

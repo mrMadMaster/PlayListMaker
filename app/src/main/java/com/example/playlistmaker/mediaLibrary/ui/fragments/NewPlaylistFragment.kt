@@ -7,14 +7,16 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.playlistmaker.R
+import com.example.playlistmaker.databinding.DialogExitConfirmationBinding
 import com.example.playlistmaker.databinding.FragmentNewPlayListBinding
 import com.example.playlistmaker.mediaLibrary.ui.viewmodel.NewPlaylistViewModel
+import com.example.playlistmaker.utils.CustomSnackbar
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -57,6 +59,7 @@ class NewPlaylistFragment : Fragment() {
         setupTextWatchers()
         observeViewModel()
         saveOriginalState()
+        setupBackPressedCallback()
     }
 
     private fun setupClickListeners() {
@@ -97,11 +100,11 @@ class NewPlaylistFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.createPlaylistResult.observe(viewLifecycleOwner) { success ->
             if (success) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.playlist_created, binding.tilName.text.toString()),
-                    Toast.LENGTH_SHORT
-                ).show()
+                val playlistName = binding.tilName.text.toString()
+                CustomSnackbar.show(
+                    binding.root,
+                    getString(R.string.playlist_created, playlistName)
+                )
                 findNavController().popBackStack()
             }
         }
@@ -167,16 +170,38 @@ class NewPlaylistFragment : Fragment() {
         }
     }
 
+    private fun setupBackPressedCallback() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (hasChanges()) {
+                        showExitConfirmationDialog()
+                    } else {
+                        findNavController().popBackStack()
+                    }
+                }
+            }
+        )
+    }
+
     private fun showExitConfirmationDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.finish_creating_playlist))
-            .setMessage(getString(R.string.unsaved_data_will_be_lost))
-            .setPositiveButton(getString(R.string.finish)) { _, _ ->
-                findNavController().popBackStack()
-            }
-            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
-            }
-            .show()
+        val dialogBinding = DialogExitConfirmationBinding.inflate(layoutInflater)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnFinish.setOnClickListener {
+            findNavController().popBackStack()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     override fun onDestroyView() {
