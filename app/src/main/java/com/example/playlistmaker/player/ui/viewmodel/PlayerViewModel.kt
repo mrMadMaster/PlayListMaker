@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.mediaLibrary.domain.interactor.FavoriteInteractor
+import com.example.playlistmaker.mediaLibrary.domain.interactor.PlaylistInteractor
+import com.example.playlistmaker.mediaLibrary.domain.models.Playlist
 import com.example.playlistmaker.player.domain.models.PlayerState
 import com.example.playlistmaker.player.domain.usecase.PrepareTrackUseCase
 import com.example.playlistmaker.player.domain.usecase.ReleasePlayerUseCase
@@ -22,7 +24,8 @@ class PlayerViewModel(
     private val prepareTrackUseCase: PrepareTrackUseCase,
     private val togglePlaybackUseCase: TogglePlaybackUseCase,
     private val releasePlayerUseCase: ReleasePlayerUseCase,
-    private val favoriteInteractor: FavoriteInteractor
+    private val favoriteInteractor: FavoriteInteractor,
+    private val playlistInteractor: PlaylistInteractor
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(PlayerUiState())
@@ -30,6 +33,12 @@ class PlayerViewModel(
 
     private val _isFavorite = MutableLiveData(false)
     val isFavorite: LiveData<Boolean> = _isFavorite
+
+    private val _playlists = MutableLiveData<List<Playlist>>()
+    val playlists: LiveData<List<Playlist>> = _playlists
+
+    private val _addToPlaylistResult = MutableLiveData<String?>()
+    val addToPlaylistResult: LiveData<String?> = _addToPlaylistResult
 
     private var currentTrack: Track? = null
 
@@ -104,6 +113,39 @@ class PlayerViewModel(
                 )
             )
         }
+    }
+
+    fun loadPlaylists() {
+        playlistInteractor.getAllPlaylists()
+            .onEach { playlists ->
+                val playlistsWithCount = playlists.map { playlist ->
+                    val trackCount = playlistInteractor.getPlaylistTracks(playlist.id).size
+                    playlist.copy(trackCount = trackCount)
+                }
+                _playlists.postValue(playlistsWithCount)
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun addTrackToPlaylist(playlist: Playlist, track: Track) {
+        viewModelScope.launch {
+            val success = playlistInteractor.addTrackToPlaylist(playlist, track)
+
+            if (success) {
+                _addToPlaylistResult.postValue(
+                    "Добавлено в плейлист ${playlist.name}"
+                )
+                loadPlaylists()
+            } else {
+                _addToPlaylistResult.postValue(
+                    "Трек уже добавлен в плейлист ${playlist.name}"
+                )
+            }
+        }
+    }
+
+    fun clearAddToPlaylistResult() {
+        _addToPlaylistResult.postValue(null)
     }
 
     override fun onCleared() {

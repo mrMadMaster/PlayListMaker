@@ -7,8 +7,10 @@ import androidx.room.Room
 import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
 import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase.Companion.DATABASE_NAME
 import com.example.playlistmaker.mediaLibrary.data.repository.FavoriteRepositoryImpl
+import com.example.playlistmaker.mediaLibrary.data.repository.PlaylistRepositoryImpl
 import com.example.playlistmaker.player.data.repository.PlayerRepositoryImpl
 import com.example.playlistmaker.mediaLibrary.domain.repository.FavoriteRepository
+import com.example.playlistmaker.mediaLibrary.domain.repository.PlaylistRepository
 import com.example.playlistmaker.player.domain.repository.PlayerRepository
 import com.example.playlistmaker.search.data.network.ItunesApi
 import com.example.playlistmaker.search.data.network.NetworkClient
@@ -98,6 +100,10 @@ val dataModule = module {
         FavoriteRepositoryImpl(
             favoriteTrackDao = get<AppDatabase>().favoriteTrackDao()
         )
+    }
+
+    single<PlaylistRepository> {
+        PlaylistRepositoryImpl(get())
     }
 
     single<ExternalNavigator> {
