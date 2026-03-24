@@ -1,6 +1,7 @@
 package com.example.playlistmaker.di
 
 import com.example.playlistmaker.mediaLibrary.ui.viewmodel.FavoritesViewModel
+import com.example.playlistmaker.mediaLibrary.ui.viewmodel.NewPlaylistViewModel
 import com.example.playlistmaker.mediaLibrary.ui.viewmodel.PlaylistsViewModel
 import com.example.playlistmaker.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.search.ui.viewmodel.SearchViewModel
@@ -12,7 +13,8 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { SearchViewModel(get()) }
     viewModel { SettingsViewModel(get(), get()) }
-    viewModel { PlaylistsViewModel() }
+    viewModel { NewPlaylistViewModel(get()) }
+    viewModel { PlaylistsViewModel(get()) }
     viewModel { FavoritesViewModel(favoriteInteractor = get()) }
     viewModel {
         PlayerViewModel(
@@ -21,7 +23,8 @@ val viewModelModule = module {
             prepareTrackUseCase = get(),
             togglePlaybackUseCase = get(),
             releasePlayerUseCase = get(),
-            favoriteInteractor = get()
+            favoriteInteractor = get(),
+            playlistInteractor = get()
         )
     }
 }
