@@ -16,6 +16,12 @@ class TrackAdapter(
     private val onTrackClick: (Track) -> Unit
 ) : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
 
+    private var onItemLongClickListener: ((Track) -> Boolean)? = null
+
+    fun setOnItemLongClickListener(listener: (Track) -> Boolean) {
+        onItemLongClickListener = listener
+    }
+
     fun updateTracks(newTracks: List<Track>) {
         tracks = newTracks
         notifyDataSetChanged()
@@ -34,6 +40,9 @@ class TrackAdapter(
         holder.bind(tracks[position])
         holder.itemView.setOnClickListener {
             onTrackClick(tracks[position])
+        }
+        holder.itemView.setOnLongClickListener {
+            onItemLongClickListener?.invoke(tracks[position]) ?: false
         }
     }
 

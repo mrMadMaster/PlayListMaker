@@ -111,7 +111,8 @@ val dataModule = module {
         PlaylistRepositoryImpl(
             playlistDao = get(),
             playlistTrackDao = get(),
-            trackDao = get()
+            trackDao = get(),
+            favoriteTrackDao = get()
         )
     }
 

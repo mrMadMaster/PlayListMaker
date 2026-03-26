@@ -23,6 +23,7 @@
 
         <TextView
             style="@style/Text22"
+            android:id="@+id/title"
             android:text="@string/new_playlist"
             android:layout_marginStart="@dimen/medium_padding"
             android:layout_marginTop="@dimen/medium14_padding"
