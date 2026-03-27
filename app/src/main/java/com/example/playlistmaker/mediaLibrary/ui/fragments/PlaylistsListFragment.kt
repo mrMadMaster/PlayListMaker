@@ -42,7 +42,7 @@ class PlaylistsListFragment : Fragment() {
     private fun setupRecyclerView() {
         playlistAdapter = PlaylistAdapter { playlist ->
             val bundle = Bundle().apply {
-                putInt("playlist_id", playlist.id)
+                putInt(PLAYLIST_ID_ARG, playlist.id)
             }
             findNavController().navigate(R.id.action_mediaLibraryFragment_to_playlistFragment, bundle)
         }
@@ -80,5 +80,9 @@ class PlaylistsListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        const val PLAYLIST_ID_ARG = "playlist_id"
     }
 }

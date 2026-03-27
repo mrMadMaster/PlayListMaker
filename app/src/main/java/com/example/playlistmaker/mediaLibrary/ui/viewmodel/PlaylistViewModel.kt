@@ -8,8 +8,16 @@ import com.example.playlistmaker.mediaLibrary.domain.interactor.PlaylistInteract
 import com.example.playlistmaker.mediaLibrary.domain.models.Playlist
 import com.example.playlistmaker.search.domain.models.Track
 import com.example.playlistmaker.utils.TrackInfoFormatter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
+
+sealed class OperationResult {
+    object Success : OperationResult()
+    data class Error(val message: String? = null) : OperationResult()
+    object Loading : OperationResult()
+}
 
 class PlaylistViewModel(
     private val playlistInteractor: PlaylistInteractor
@@ -27,48 +35,76 @@ class PlaylistViewModel(
     private val _trackCount = MutableLiveData<Int>()
     val trackCount: LiveData<Int> = _trackCount
 
-    private val _deleteTrackResult = MutableLiveData<Boolean?>()
-    val deleteTrackResult: LiveData<Boolean?> = _deleteTrackResult
+    private val _deleteTrackResult = MutableLiveData<OperationResult>()
+    val deleteTrackResult: LiveData<OperationResult> = _deleteTrackResult
 
     private val _shareText = MutableLiveData<String>()
     val shareText: LiveData<String> = _shareText
 
-    private val _deletePlaylistResult = MutableLiveData<Boolean?>()
-    val deletePlaylistResult: LiveData<Boolean?> = _deletePlaylistResult
+    private val _deletePlaylistResult = MutableLiveData<OperationResult>()
+    val deletePlaylistResult: LiveData<OperationResult> = _deletePlaylistResult
 
     fun loadPlaylistInfo(playlistId: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val playlist = playlistInteractor.getPlaylistById(playlistId)
-            _playlist.value = playlist
-            _trackCount.value = playlistInteractor.getPlaylistTracks(playlistId).size
+            val trackCount = playlistInteractor.getPlaylistTracks(playlistId).size
+
+            withContext(Dispatchers.Main) {
+                _playlist.value = playlist
+                _trackCount.value = trackCount
+            }
         }
     }
 
     fun loadPlaylistTracks(playlistId: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val tracks = playlistInteractor.getPlaylistTracks(playlistId)
-            _tracks.value = tracks
-            _totalDuration.value = playlistInteractor.getTotalDuration(playlistId)
+            val totalDuration = playlistInteractor.getTotalDuration(playlistId)
+
+            withContext(Dispatchers.Main) {
+                _tracks.value = tracks
+                _totalDuration.value = totalDuration
+            }
         }
     }
 
     fun removeTrackFromPlaylist(playlistId: Int, trackId: Int) {
         viewModelScope.launch {
-            val success = playlistInteractor.removeTrackFromPlaylist(playlistId, trackId)
-            _deleteTrackResult.value = success
+            _deleteTrackResult.postValue(OperationResult.Loading)
+
+            val success = try {
+                playlistInteractor.removeTrackFromPlaylist(playlistId, trackId)
+            } catch (e: Exception) {
+                false
+            }
+
             if (success) {
+                _deleteTrackResult.value = OperationResult.Success
                 loadPlaylistTracks(playlistId)
                 loadPlaylistInfo(playlistId)
+            } else {
+                _deleteTrackResult.value = OperationResult.Error()
             }
         }
     }
 
     fun deletePlaylist(playlistId: Int) {
         viewModelScope.launch {
+            _deletePlaylistResult.postValue(OperationResult.Loading)
+
             val playlist = playlistInteractor.getPlaylistById(playlistId)
-            playlist?.let {
-                val success = playlistInteractor.deletePlaylist(it)
-                _deletePlaylistResult.value = success
+            val success = playlist?.let {
+                try {
+                    playlistInteractor.deletePlaylist(it)
+                } catch (e: Exception) {
+                    false
+                }
+            } ?: false
+
+            _deletePlaylistResult.value = if (success) {
+                OperationResult.Success
+            } else {
+                OperationResult.Error()
             }
         }
     }
@@ -101,6 +137,6 @@ class PlaylistViewModel(
         val millis = timeMillis.toLongOrNull() ?: 0L
         val minutes = millis / 1000 / 60
         val seconds = (millis / 1000) % 60
-        return String.format(Locale.getDefault(),"%d:%02d", minutes, seconds)
+        return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
     }
 }

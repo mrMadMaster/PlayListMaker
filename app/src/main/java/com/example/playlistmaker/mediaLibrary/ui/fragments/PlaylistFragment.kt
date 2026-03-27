@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.DialogConfirmationBinding
 import com.example.playlistmaker.databinding.FragmentPlaylistMainBinding
+import com.example.playlistmaker.mediaLibrary.ui.viewmodel.OperationResult
 import com.example.playlistmaker.mediaLibrary.ui.viewmodel.PlaylistViewModel
 import com.example.playlistmaker.player.ui.fragments.AudioPlayerFragment
 import com.example.playlistmaker.search.domain.models.Track
@@ -36,6 +37,7 @@ class PlaylistFragment : Fragment() {
     private lateinit var trackAdapter: TrackAdapter
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     private lateinit var menuBottomSheetBehavior: BottomSheetBehavior<LinearLayout>
+    private var isPreparingShareText = false
 
     private var playlistId: Int = 0
 
@@ -51,7 +53,7 @@ class PlaylistFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        playlistId = arguments?.getInt("playlist_id", 0) ?: 0
+        playlistId = arguments?.getInt(PLAYLIST_ID_ARG, 0) ?: 0
         if (playlistId == 0) {
             findNavController().popBackStack()
             return
@@ -105,16 +107,14 @@ class PlaylistFragment : Fragment() {
             if (!isAdded || _binding == null) return@post
 
             val location = IntArray(2)
-            binding.shareButton.getLocationOnScreen(location)
+            binding.shareButton.getLocationInWindow(location)
             val buttonsY = location[1]
-            val screenHeight = resources.displayMetrics.heightPixels
-            val peekHeightValue = screenHeight - buttonsY + binding.shareButton.height - 24
+            val windowHeight = binding.root.height
+            val peekHeightValue = windowHeight - buttonsY + binding.shareButton.height - 24
 
             bottomSheetBehavior.peekHeight = peekHeightValue
 
-            if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-            }
+            binding.tracksBottomSheet.root.alpha = 1f
 
             android.util.Log.d("PlaylistFragment", "Updated bottom sheet peek height: $peekHeightValue")
         }
@@ -131,10 +131,10 @@ class PlaylistFragment : Fragment() {
                 if (!isAdded) return@post
 
                 val location = IntArray(2)
-                binding.playlistName.getLocationOnScreen(location)
+                binding.playlistName.getLocationInWindow(location)
                 val buttonsY = location[1]
-                val screenHeight = resources.displayMetrics.heightPixels
-                val peekHeightValue = screenHeight - buttonsY + binding.playlistName.height - 24
+                val windowHeight = binding.root.height
+                val peekHeightValue = windowHeight - buttonsY + binding.playlistName.height - 24
 
                 peekHeight = peekHeightValue
             }
@@ -221,22 +221,17 @@ class PlaylistFragment : Fragment() {
     }
 
     private fun onShareClicked() {
-        viewModel.trackCount.observe(viewLifecycleOwner) { trackCount ->
-            if (trackCount == 0) {
-                CustomSnackbar.show(
-                    binding.root,
-                    getString(R.string.empty_playlist_share_error)
-                )
-            } else {
-                viewModel.shareText.observe(viewLifecycleOwner) { shareText ->
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, shareText)
-                    }
-                    startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)))
-                }
-                viewModel.prepareShareText()
-            }
+        if (isPreparingShareText) return
+
+        val trackCount = viewModel.trackCount.value ?: 0
+        if (trackCount == 0) {
+            CustomSnackbar.show(
+                binding.root,
+                getString(R.string.empty_playlist_share_error)
+            )
+        } else {
+            isPreparingShareText = true
+            viewModel.prepareShareText()
         }
     }
 
@@ -299,7 +294,7 @@ class PlaylistFragment : Fragment() {
 
     private fun navigateToEditPlaylist() {
         val bundle = Bundle().apply {
-            putInt("playlist_id", playlistId)
+            putInt(PLAYLIST_ID_ARG, playlistId)
         }
         findNavController().navigate(R.id.action_playlistFragment_to_editPlaylistFragment, bundle)
     }
@@ -317,7 +312,6 @@ class PlaylistFragment : Fragment() {
             trackAdapter.updateTracks(tracks)
             binding.tracksBottomSheet.tracksRecyclerView.isVisible = tracks.isNotEmpty()
             updateTracksVisibility(tracks)
-            updateBottomSheetPeekHeight()
         }
 
         viewModel.totalDuration.observe(viewLifecycleOwner) { duration ->
@@ -328,19 +322,43 @@ class PlaylistFragment : Fragment() {
             binding.playlistTrackCount.text = TrackInfoFormatter.getTrackCountText(count)
         }
 
-        viewModel.deleteTrackResult.observe(viewLifecycleOwner) { success ->
-            if (success == true) {
-                viewModel.loadPlaylistTracks(playlistId)
-                viewModel.loadPlaylistInfo(playlistId)
+        viewModel.deleteTrackResult.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                is OperationResult.Success -> {
+                }
+                is OperationResult.Error -> {
+                }
+                is OperationResult.Loading -> {
+                }
             }
         }
 
-        viewModel.deletePlaylistResult.observe(viewLifecycleOwner) { success ->
-            if (success == true && isAdded) {
-                CustomSnackbar.show(binding.root, getString(R.string.playlist_deleted))
-                findNavController().popBackStack()
-            } else if (success == false && isAdded) {
-                CustomSnackbar.show(binding.root, getString(R.string.playlist_deletion_error))
+        viewModel.deletePlaylistResult.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                is OperationResult.Success -> {
+                    if (isAdded) {
+                        CustomSnackbar.show(binding.root, getString(R.string.playlist_deleted))
+                        findNavController().popBackStack()
+                    }
+                }
+                is OperationResult.Error -> {
+                    if (isAdded) {
+                        CustomSnackbar.show(binding.root, result.message ?: getString(R.string.playlist_deletion_error))
+                    }
+                }
+                is OperationResult.Loading -> {
+                }
+            }
+        }
+
+        viewModel.shareText.observe(viewLifecycleOwner) { shareText ->
+            isPreparingShareText = false
+            if (shareText.isNotEmpty()) {
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                }
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_chooser_title)))
             }
         }
     }
@@ -379,10 +397,6 @@ class PlaylistFragment : Fragment() {
         val dateFormat = SimpleDateFormat("yyyy", Locale.getDefault())
         val date = playlist.createdAt ?: System.currentTimeMillis()
         binding.creationDate.text = dateFormat.format(date)
-
-        binding.root.post {
-            updateBottomSheetPeekHeight()
-        }
     }
 
     private fun displayMenuPlaylistInfo(playlist: com.example.playlistmaker.mediaLibrary.domain.models.Playlist) {
@@ -412,5 +426,9 @@ class PlaylistFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        const val PLAYLIST_ID_ARG = "playlist_id"
     }
 }
