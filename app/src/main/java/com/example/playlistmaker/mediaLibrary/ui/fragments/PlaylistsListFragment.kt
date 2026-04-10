@@ -9,14 +9,14 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.playlistmaker.R
-import com.example.playlistmaker.databinding.FragmentPlaylistBinding
+import com.example.playlistmaker.databinding.FragmentPlaylistListBinding
 import com.example.playlistmaker.mediaLibrary.ui.adapter.PlaylistAdapter
 import com.example.playlistmaker.mediaLibrary.ui.viewmodel.PlaylistsViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class PlaylistsFragment : Fragment() {
+class PlaylistsListFragment : Fragment() {
 
-    private var _binding: FragmentPlaylistBinding? = null
+    private var _binding: FragmentPlaylistListBinding? = null
     private val binding get() = _binding!!
     private val viewModel: PlaylistsViewModel by viewModel()
 
@@ -27,7 +27,7 @@ class PlaylistsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentPlaylistBinding.inflate(inflater, container, false)
+        _binding = FragmentPlaylistListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -41,7 +41,10 @@ class PlaylistsFragment : Fragment() {
 
     private fun setupRecyclerView() {
         playlistAdapter = PlaylistAdapter { playlist ->
-
+            val bundle = Bundle().apply {
+                putInt(PLAYLIST_ID_ARG, playlist.id)
+            }
+            findNavController().navigate(R.id.action_mediaLibraryFragment_to_playlistFragment, bundle)
         }
 
         binding.playlistsRecyclerView.apply {
@@ -52,7 +55,7 @@ class PlaylistsFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.buttonNewPlaylist.setOnClickListener {
-            findNavController().navigate(R.id.newPlaylistFragment)
+            findNavController().navigate(R.id.action_mediaLibraryFragment_to_newPlaylistFragment)
         }
     }
 
@@ -77,5 +80,9 @@ class PlaylistsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        const val PLAYLIST_ID_ARG = "playlist_id"
     }
 }

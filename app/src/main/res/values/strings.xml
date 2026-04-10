@@ -8,6 +8,9 @@
     <string name="user_agreement">Пользовательское соглашение</string>
     <string name="support">Написать в поддержку</string>
     <string name="send">Поделиться приложением</string>
+    <string name="send2">Поделиться</string>
+    <string name="edit">Редактировать информацию</string>
+    <string name="delete_playlist">Удалить плейлист</string>
     <string name="clear">Очистить</string>
     <string name="night">Темная тема</string>
     <string name="art">artwork</string>
@@ -45,13 +48,26 @@
     <string name="finish">Завершить</string>
     <string name="cancel">Отмена</string>
     <string name="playlist_created">Плейлист %s создан</string>
-    <plurals name="track_count">
-        <item quantity="one">%d трек</item>
-        <item quantity="few">%d трека</item>
-        <item quantity="many">%d треков</item>
-        <item quantity="other">%d треков</item>
-    </plurals>
     <string name="add_to_playlist">Добавить в плейлист</string>
     <string name="track_already_in_playlist">Трек уже добавлен в плейлист %s</string>
     <string name="track_added_to_playlist">Добавлено в плейлист %s</string>
+    <string name="share">Поделиться</string>
+    <string name="menu">Меню</string>
+    <string name="playlist">Плейлист</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="no_tracks">В этом плейлисте нет треков</string>
+    <string name="empty_playlist_share_error">В этом плейлисте нет списка треков, которым можно поделиться</string>
+    <string name="delete_track_confirmation">Хотите удалить трек?</string>
+    <string name="delete_playlist_confirmation">Хотите удалить плейлист "%s"?</string>
+    <string name="playlist_deleted">Плейлист удален</string>
+    <string name="playlist_deletion_error">Не удалось удалить плейлист</string>
+    <string name="share_chooser_title">Поделиться</string>
+    <string name="share_playlist_empty_error">В этом плейлисте нет треков, которыми можно поделиться</string>
+    <string name="edit_playlist_title">Редактировать</string>
+    <string name="new_playlist_title">Новый плейлист</string>
+    <string name="save_playlist">Сохранить</string>
+    <string name="create_playlist">Создать</string>
+    <string name="exit_playlist_creation">Завершить создание плейлиста?</string>
+    <string name="unsaved_data_warning">Все несохраненные данные будут потеряны!</string>
 </resources>

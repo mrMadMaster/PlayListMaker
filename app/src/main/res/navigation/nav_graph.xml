@@ -23,6 +23,7 @@
         android:name="com.example.playlistmaker.mediaLibrary.ui.fragments.MediaLibraryFragment"
         android:label="@string/media_library"
         tools:layout="@layout/fragment_media_library">
+
         <action
             android:id="@+id/action_mediaLibraryFragment_to_audioPlayerFragment"
             app:destination="@id/audioPlayerFragment" />
@@ -30,6 +31,10 @@
         <action
             android:id="@+id/action_mediaLibraryFragment_to_newPlaylistFragment"
             app:destination="@id/newPlaylistFragment" />
+
+        <action
+            android:id="@+id/action_mediaLibraryFragment_to_playlistFragment"
+            app:destination="@id/playlistFragment" />
     </fragment>
 
     <fragment
@@ -57,6 +62,34 @@
         android:id="@+id/newPlaylistFragment"
         android:name="com.example.playlistmaker.mediaLibrary.ui.fragments.NewPlaylistFragment"
         android:label="@string/new_playlist"
-        tools:layout="@layout/fragment_new_playlist" />
+        tools:layout="@layout/fragment_new_playlist">
+
+        <argument
+            android:name="playlist_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/playlistFragment"
+        android:name="com.example.playlistmaker.mediaLibrary.ui.fragments.PlaylistFragment"
+        android:label="Playlist"
+        tools:layout="@layout/fragment_playlist_main">
+
+        <argument
+            android:name="playlist_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+
+        <action
+            android:id="@+id/action_playlistFragment_to_audioPlayerFragment"
+            app:destination="@id/audioPlayerFragment"
+            app:popUpTo="@id/playlistFragment"
+            app:popUpToInclusive="false" />
+
+        <action
+            android:id="@+id/action_playlistFragment_to_editPlaylistFragment"
+            app:destination="@id/newPlaylistFragment" />
+    </fragment>
 
 </navigation>

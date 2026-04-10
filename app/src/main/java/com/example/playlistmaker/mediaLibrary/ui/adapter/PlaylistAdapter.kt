@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide
 import com.example.playlistmaker.R
 import com.example.playlistmaker.databinding.ItemPlaylistBinding
 import com.example.playlistmaker.mediaLibrary.domain.models.Playlist
+import com.example.playlistmaker.utils.TrackInfoFormatter
 
 class PlaylistAdapter(
     private val onPlaylistClick: (Playlist) -> Unit
@@ -44,11 +45,7 @@ class PlaylistAdapter(
         fun bind(playlist: Playlist) {
             with(binding) {
                 playlistName.text = playlist.name
-                playlistTrackCount.text = itemView.context.resources.getQuantityString(
-                    R.plurals.track_count,
-                    playlist.trackCount,
-                    playlist.trackCount
-                )
+                playlistTrackCount.text = TrackInfoFormatter.getTrackCountText(playlist.trackCount)
 
                 if (!playlist.coverPath.isNullOrEmpty()) {
                     Glide.with(itemView)
