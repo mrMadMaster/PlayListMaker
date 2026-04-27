@@ -17,6 +17,7 @@ import com.example.playlistmaker.mediaLibrary.domain.models.Playlist
 import com.example.playlistmaker.mediaLibrary.ui.adapter.PlaylistSmallAdapter
 import com.example.playlistmaker.player.domain.models.PlaybackProgress
 import com.example.playlistmaker.player.domain.models.PlayerState
+import com.example.playlistmaker.player.ui.custom.PlaybackButtonView
 import com.example.playlistmaker.player.ui.viewmodel.PlayerUiState
 import com.example.playlistmaker.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.search.domain.models.Track
@@ -104,9 +105,11 @@ class AudioPlayerFragment : Fragment() {
             findNavController().popBackStack()
         }
 
-        binding.startStop.setOnClickListener {
-            viewModel.togglePlayback()
-        }
+        binding.playbackButton.setOnPlaybackClickListener(object : PlaybackButtonView.OnPlaybackClickListener {
+            override fun onPlaybackClick() {
+                viewModel.togglePlayback()
+            }
+        })
 
         binding.toFavourites.setOnClickListener {
             viewModel.onFavoriteClicked()
@@ -216,12 +219,7 @@ class AudioPlayerFragment : Fragment() {
                 if (isFavorite) R.drawable.ic_favorite_filled
                 else R.drawable.ic_add_to_favourites_51
             )
-
-            startStop.isEnabled = state.isPlayButtonEnabled
-            startStop.setImageResource(
-                if (state.isPlayButtonPlaying) R.drawable.ic_stop_100
-                else R.drawable.ic_start_100
-            )
+            playbackButton.setPlaybackState(state.isPlayButtonPlaying)
 
             remainingTime.visibility = if (state.showProgress) View.VISIBLE else View.INVISIBLE
         }
