@@ -1,16 +1,16 @@
 package com.example.playlistmaker.player.ui.custom
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.withStyledAttributes
-import androidx.core.graphics.drawable.toBitmap
 import com.example.playlistmaker.R
+import androidx.core.graphics.withTranslation
 
 class PlaybackButtonView @JvmOverloads constructor(
     context: Context,
@@ -18,16 +18,10 @@ class PlaybackButtonView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    companion object {
-        private const val STATE_PLAY = 0
-        private const val STATE_PAUSE = 1
-        private const val DEFAULT_SIZE_DP = 100
-    }
-
     private var currentState = STATE_PLAY
 
-    private var playBitmap: Bitmap? = null
-    private var pauseBitmap: Bitmap? = null
+    private var playDrawable: android.graphics.drawable.Drawable? = null
+    private var pauseDrawable: android.graphics.drawable.Drawable? = null
 
     private var drawRect = RectF()
 
@@ -42,33 +36,22 @@ class PlaybackButtonView @JvmOverloads constructor(
                 val pauseIconRes = getResourceId(R.styleable.PlaybackButtonView_pauseIcon, 0)
 
                 if (playIconRes != 0) {
-                    playBitmap = loadBitmapFromVector(playIconRes)
+                    playDrawable = AppCompatResources.getDrawable(context, playIconRes)
                 }
 
                 if (pauseIconRes != 0) {
-                    pauseBitmap = loadBitmapFromVector(pauseIconRes)
+                    pauseDrawable = AppCompatResources.getDrawable(context, pauseIconRes)
                 }
             }
-        }
-    }
-
-    private fun loadBitmapFromVector(resId: Int): Bitmap? {
-        return try {
-            val drawable = AppCompatResources.getDrawable(context, resId)
-            val width = (DEFAULT_SIZE_DP * resources.displayMetrics.density).toInt()
-            val height = width
-            drawable?.let {
-                it.setBounds(0, 0, width, height)
-                it.toBitmap(width, height, Bitmap.Config.ARGB_8888)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
         }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val defaultSize = (DEFAULT_SIZE_DP * resources.displayMetrics.density).toInt()
+        val defaultSize = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            DEFAULT_SIZE_DP.toFloat(),
+            resources.displayMetrics
+        ).toInt()
 
         val width = when (MeasureSpec.getMode(widthMeasureSpec)) {
             MeasureSpec.EXACTLY -> MeasureSpec.getSize(widthMeasureSpec)
@@ -100,19 +83,29 @@ class PlaybackButtonView @JvmOverloads constructor(
         val top = (h - size) / 2
 
         drawRect.set(left, top, left + size, top + size)
+
+        updateDrawableBounds()
+    }
+
+    private fun updateDrawableBounds() {
+        val width = drawRect.width().toInt()
+        val height = drawRect.height().toInt()
+
+        playDrawable?.setBounds(0, 0, width, height)
+        pauseDrawable?.setBounds(0, 0, width, height)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val bitmapToDraw = when (currentState) {
-            STATE_PLAY -> playBitmap
-            STATE_PAUSE -> pauseBitmap
-            else -> playBitmap
+        val drawableToDraw = when (currentState) {
+            STATE_PLAY -> playDrawable
+            STATE_PAUSE -> pauseDrawable
+            else -> playDrawable
         }
 
-        bitmapToDraw?.let { bitmap ->
-            canvas.drawBitmap(bitmap, null, drawRect, null)
+        canvas.withTranslation(drawRect.left, drawRect.top) {
+            drawableToDraw?.draw(this)
         }
     }
 
@@ -137,8 +130,11 @@ class PlaybackButtonView @JvmOverloads constructor(
     }
 
     fun setPlaybackState(isPlaying: Boolean) {
-        currentState = if (isPlaying) STATE_PAUSE else STATE_PLAY
-        invalidate()
+        val newState = if (isPlaying) STATE_PAUSE else STATE_PLAY
+        if (currentState != newState) {
+            currentState = newState
+            invalidate()
+        }
     }
 
     fun toggleState() {
@@ -152,5 +148,11 @@ class PlaybackButtonView @JvmOverloads constructor(
 
     interface OnPlaybackClickListener {
         fun onPlaybackClick()
+    }
+
+    companion object {
+        private const val STATE_PLAY = 0
+        private const val STATE_PAUSE = 1
+        private const val DEFAULT_SIZE_DP = 100
     }
 }
