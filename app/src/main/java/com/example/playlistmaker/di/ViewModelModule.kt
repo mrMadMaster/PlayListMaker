@@ -8,7 +8,6 @@ import com.example.playlistmaker.player.ui.viewmodel.PlayerViewModel
 import com.example.playlistmaker.search.ui.viewmodel.SearchViewModel
 import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
 import org.koin.core.module.dsl.viewModel
-
 import org.koin.dsl.module
 
 val viewModelModule = module {
@@ -20,11 +19,6 @@ val viewModelModule = module {
     viewModel { FavoritesViewModel(favoriteInteractor = get()) }
     viewModel {
         PlayerViewModel(
-            subscribeToStateUseCase = get(),
-            subscribeToProgressUseCase = get(),
-            prepareTrackUseCase = get(),
-            togglePlaybackUseCase = get(),
-            releasePlayerUseCase = get(),
             favoriteInteractor = get(),
             playlistInteractor = get()
         )

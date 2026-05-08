@@ -2,7 +2,6 @@ package com.example.playlistmaker.di
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.media.MediaPlayer
 import androidx.room.Room
 import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase
 import com.example.playlistmaker.mediaLibrary.data.db.AppDatabase.Companion.DATABASE_NAME
@@ -12,10 +11,8 @@ import com.example.playlistmaker.mediaLibrary.data.db.dao.PlaylistTrackDao
 import com.example.playlistmaker.mediaLibrary.data.db.dao.TrackDao
 import com.example.playlistmaker.mediaLibrary.data.repository.FavoriteRepositoryImpl
 import com.example.playlistmaker.mediaLibrary.data.repository.PlaylistRepositoryImpl
-import com.example.playlistmaker.player.data.repository.PlayerRepositoryImpl
 import com.example.playlistmaker.mediaLibrary.domain.repository.FavoriteRepository
 import com.example.playlistmaker.mediaLibrary.domain.repository.PlaylistRepository
-import com.example.playlistmaker.player.domain.repository.PlayerRepository
 import com.example.playlistmaker.search.data.network.ItunesApi
 import com.example.playlistmaker.search.data.network.NetworkClient
 import com.example.playlistmaker.search.data.network.RetrofitNetworkClient
@@ -75,8 +72,6 @@ val dataModule = module {
 
     factory { Gson() }
 
-    factory { MediaPlayer() }
-
     single<SharedPreferences>(named("search_prefs")) {
         androidContext().getSharedPreferences(SEARCH_HISTORY_KEY, Context.MODE_PRIVATE)
     }
@@ -97,8 +92,6 @@ val dataModule = module {
         SettingsRepositoryImpl(
             get(named("settings_prefs")))
     }
-
-    single<PlayerRepository> { PlayerRepositoryImpl(get()) }
 
     single<FavoriteRepository> {
         FavoriteRepositoryImpl(
@@ -136,5 +129,4 @@ val dataModule = module {
     single<EmailData> {
         get<SharingConfigProvider>().getSharingConfig()
     }
-
 }
