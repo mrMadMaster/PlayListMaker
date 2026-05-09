@@ -1,6 +1,8 @@
 package com.example.playlistmaker.player.data
 
-import android.app.*
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.MediaPlayer
@@ -13,8 +15,20 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.player.domain.service.PlayerServiceConnection
 import com.example.playlistmaker.player.domain.models.PlayerState
 import com.example.playlistmaker.player.domain.models.PlaybackProgress
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import com.example.playlistmaker.search.domain.models.Track
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class PlayerService : Service(), PlayerServiceConnection {
 
@@ -25,12 +39,12 @@ class PlayerService : Service(), PlayerServiceConnection {
     override val state: StateFlow<PlayerState> = _state.asStateFlow()
 
     private val _progress = MutableSharedFlow<PlaybackProgress>(replay = 1)
-    override val progress: Flow<PlaybackProgress> = _progress.asSharedFlow()
+    override val progress = _progress.asSharedFlow()
 
     private var progressJob: Job? = null
     private var isBackground = false
-    private var currentArtist: String = ""
-    private var currentTrack: String = ""
+    private var currentTrack: Track? = null
+
     private val binder = LocalBinder()
 
     inner class LocalBinder : Binder() {
@@ -79,8 +93,6 @@ class PlayerService : Service(), PlayerServiceConnection {
     }
 
     override fun onBind(intent: Intent?): IBinder {
-        intent?.getStringExtra(EXTRA_ARTIST)?.let { currentArtist = it }
-        intent?.getStringExtra(EXTRA_TRACK_NAME)?.let { currentTrack = it }
         return binder
     }
 
@@ -92,11 +104,15 @@ class PlayerService : Service(), PlayerServiceConnection {
         mediaPlayer = null
     }
 
-    override fun prepare(url: String, artist: String, trackName: String) {
+    override fun prepare(track: Track) {
         release()
-        currentArtist = artist
-        currentTrack = trackName
+        currentTrack = track
         _state.value = PlayerState.Preparing
+        val url = track.previewUrl.orEmpty()
+        if (url.isEmpty()) {
+            _state.value = PlayerState.Error("No preview URL")
+            return
+        }
         try {
             mediaPlayer?.apply {
                 reset()
@@ -109,18 +125,16 @@ class PlayerService : Service(), PlayerServiceConnection {
     }
 
     override fun playPause() {
-        android.util.Log.d("PlayerService", "playPause called, current state = ${_state.value}")
-        when (val s = _state.value) {
+        when (_state.value) {
             is PlayerState.Ready -> play()
             is PlayerState.Paused -> play()
             PlayerState.Completed -> play()
             is PlayerState.Playing -> pause()
-            else -> { android.util.Log.w("PlayerService", "ignored in state $s") }
+            else -> {}
         }
     }
 
     private fun play() {
-        android.util.Log.d("PlayerService", "play() called")
         mediaPlayer?.start()
         _state.value = PlayerState.Playing
         startProgressUpdates()
@@ -128,7 +142,6 @@ class PlayerService : Service(), PlayerServiceConnection {
     }
 
     private fun pause() {
-        android.util.Log.d("PlayerService", "pause() called")
         mediaPlayer?.pause()
         _state.value = PlayerState.Paused
         stopProgressUpdates()
@@ -137,7 +150,6 @@ class PlayerService : Service(), PlayerServiceConnection {
     }
 
     override fun release() {
-        android.util.Log.d("PlayerService", "release() called")
         stopProgressUpdates()
         mediaPlayer?.reset()
         _state.value = PlayerState.Idle
@@ -159,10 +171,12 @@ class PlayerService : Service(), PlayerServiceConnection {
     }
 
     private fun showForegroundNotification() {
+        val artist = currentTrack?.artistName.orEmpty()
+        val trackName = currentTrack?.trackName.orEmpty()
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("$currentArtist - $currentTrack")
+            .setContentText("$artist - $trackName")
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
@@ -181,7 +195,7 @@ class PlayerService : Service(), PlayerServiceConnection {
         progressJob = scope.launch {
             while (isActive) {
                 emitCurrentProgress()
-                delay(300)
+                delay(PROGRESS_UPDATE_INTERVAL_MILLIS)
             }
         }
     }
@@ -203,7 +217,6 @@ class PlayerService : Service(), PlayerServiceConnection {
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "playback_channel"
         const val NOTIFICATION_ID = 101
-        const val EXTRA_ARTIST = "extra_artist"
-        const val EXTRA_TRACK_NAME = "extra_track_name"
+        private const val PROGRESS_UPDATE_INTERVAL_MILLIS = 300L
     }
 }

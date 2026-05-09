@@ -6,9 +6,13 @@ import com.example.playlistmaker.mediaLibrary.domain.interactor.FavoriteInteract
 import com.example.playlistmaker.mediaLibrary.domain.interactor.PlaylistInteractor
 import com.example.playlistmaker.mediaLibrary.domain.models.Playlist
 import com.example.playlistmaker.player.domain.service.PlayerServiceConnection
-import com.example.playlistmaker.player.domain.models.PlayerState
 import com.example.playlistmaker.search.domain.models.Track
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PlayerViewModel(
@@ -68,17 +72,7 @@ class PlayerViewModel(
             }
             _isFavorite.value = isTrackFavorite
         }
-
-        val previewUrl = track.previewUrl
-        if (previewUrl.isNullOrEmpty()) {
-            _uiState.update { it.copy(playerState = PlayerState.Error("error")) }
-            return
-        }
-        service?.prepare(
-            previewUrl,
-            track.artistName,
-            track.trackName
-        )
+        service?.prepare(track)
     }
 
     fun togglePlayback() {

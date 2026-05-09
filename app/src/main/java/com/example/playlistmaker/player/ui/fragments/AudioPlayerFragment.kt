@@ -90,11 +90,7 @@ class AudioPlayerFragment : Fragment() {
     }
 
     private fun bindPlayerService() {
-        val intent = Intent(requireContext(), PlayerService::class.java).apply {
-            putExtra(PlayerService.EXTRA_ARTIST, track?.artistName ?: "")
-            putExtra(PlayerService.EXTRA_TRACK_NAME, track?.trackName ?: "")
-        }
-
+        val intent = Intent(requireContext(), PlayerService::class.java)
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
                 val localBinder = binder as? PlayerService.LocalBinder
