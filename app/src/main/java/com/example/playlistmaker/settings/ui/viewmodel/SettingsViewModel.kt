@@ -16,6 +16,10 @@ class SettingsViewModel(
     private val _themeState = MutableLiveData<Boolean>()
     val themeState: LiveData<Boolean> = _themeState
 
+    init {
+        loadThemeState()
+    }
+
     private val _uiState = MutableLiveData<SettingsUiState>()
 
     fun loadThemeState() {

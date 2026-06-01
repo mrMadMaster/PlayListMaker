@@ -29,6 +29,19 @@ class SearchViewModel(
 
     private var currentQuery: String = ""
     private var searchJob: Job? = null
+    private val _searchText = MutableLiveData("")
+    val searchText: LiveData<String> = _searchText
+
+    fun updateSearchText(text: String) {
+        _searchText.value = text
+    }
+
+    fun restoreSearchText() {
+        val text = _searchText.value
+        if (!text.isNullOrEmpty()) {
+            searchDebounced(text)
+        }
+    }
 
     private val debouncedSearch = debounce<String>(
         delayMillis = SEARCH_DEBOUNCE_DELAY,
