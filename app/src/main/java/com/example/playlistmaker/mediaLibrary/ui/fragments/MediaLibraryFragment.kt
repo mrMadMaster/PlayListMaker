@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,11 +26,10 @@ class MediaLibraryFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                val darkTheme by settingsViewModel.themeState.observeAsState(false)
                 val selectedTabIndex by mediaLibraryViewModel.selectedTabIndex.collectAsStateWithLifecycle()
                 MediaLibraryScreen(
                     fragment = this@MediaLibraryFragment,
-                    darkTheme = darkTheme,
+                    settingsViewModel = settingsViewModel,
                     selectedTabIndex = selectedTabIndex,
                     onTabSelected = { mediaLibraryViewModel.setSelectedTabIndex(it) }
                 )

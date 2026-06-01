@@ -8,7 +8,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -21,15 +21,18 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.playlistmaker.R
 import com.example.playlistmaker.mediaLibrary.ui.fragments.FavoritesFragment
 import com.example.playlistmaker.mediaLibrary.ui.fragments.PlaylistsListFragment
+import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
+import com.example.playlistmaker.ui.components.TopBar
 import com.example.playlistmaker.ui.theme.PlaylistMakerTheme
 
 @Composable
 fun MediaLibraryScreen(
     fragment: Fragment,
-    darkTheme: Boolean,
+    settingsViewModel: SettingsViewModel,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit
 ) {
+    val darkTheme by settingsViewModel.themeState.observeAsState(initial = false)
     val context = LocalContext.current
     val activity = context as? FragmentActivity ?: return
 
@@ -64,20 +67,7 @@ fun MediaLibraryScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.media_library),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 16.dp)
-                )
-            }
+            TopBar(title = stringResource(R.string.media_library))
 
             TabRow(
                 selectedTabIndex = selectedTabIndex,

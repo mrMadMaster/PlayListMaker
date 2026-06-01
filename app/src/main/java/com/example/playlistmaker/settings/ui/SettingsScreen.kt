@@ -22,6 +22,7 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.settings.domain.interactor.SettingsInteractor
 import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
 import com.example.playlistmaker.sharing.domain.interactor.SharingInteractor
+import com.example.playlistmaker.ui.components.TopBar
 import com.example.playlistmaker.ui.theme.PlaylistMakerTheme
 
 @Composable
@@ -34,18 +35,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = 16.dp, top = 14.dp)
-                )
-            }
+            TopBar(title = stringResource(R.string.settings))
 
             Spacer(modifier = Modifier.height(24.dp))
 

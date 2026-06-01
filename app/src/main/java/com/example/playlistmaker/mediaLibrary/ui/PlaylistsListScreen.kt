@@ -19,23 +19,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.mediaLibrary.domain.models.Playlist
 import com.example.playlistmaker.mediaLibrary.ui.viewmodel.PlaylistsViewModel
+import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
+import com.example.playlistmaker.ui.components.EmptyState
 import com.example.playlistmaker.ui.theme.PlaylistMakerTheme
 import com.example.playlistmaker.utils.TrackInfoFormatter
 
 @Composable
 fun PlaylistsListScreen(
     viewModel: PlaylistsViewModel,
-    darkTheme: Boolean,
+    settingsViewModel: SettingsViewModel,
     onNewPlaylistClick: () -> Unit,
     onPlaylistClick: (Playlist) -> Unit
 ) {
+    val darkTheme by settingsViewModel.themeState.observeAsState(initial = false)
     val playlists by viewModel.playlists.observeAsState(emptyList())
 
     LaunchedEffect(Unit) {
@@ -53,6 +55,7 @@ fun PlaylistsListScreen(
                 onClick = onNewPlaylistClick,
                 modifier = Modifier
                     .padding(top = 24.dp)
+                    .height(36.dp)
                     .align(Alignment.CenterHorizontally),
                 shape = RoundedCornerShape(54.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground)
@@ -65,7 +68,10 @@ fun PlaylistsListScreen(
             }
 
             if (playlists.isEmpty()) {
-                EmptyPlaylistState()
+                EmptyState(
+                    iconRes = R.drawable.ic_not_found_120,
+                    message = stringResource(R.string.no_playlist)
+                )
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -83,28 +89,6 @@ fun PlaylistsListScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun EmptyPlaylistState() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(46.dp))
-        androidx.compose.foundation.Image(
-            painter = painterResource(R.drawable.ic_not_found_120),
-            contentDescription = null,
-            modifier = Modifier.size(120.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(R.string.no_playlist),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground
-        )
     }
 }
 

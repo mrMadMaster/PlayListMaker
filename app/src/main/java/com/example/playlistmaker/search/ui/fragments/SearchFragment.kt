@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -30,13 +28,10 @@ class SearchFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                val darkTheme by settingsViewModel.themeState.observeAsState(false)
                 SearchScreen(
                     viewModel = viewModel,
-                    darkTheme = darkTheme,
-                    onTrackClick = { track ->
-                        navigateToPlayer(track)
-                    }
+                    settingsViewModel = settingsViewModel,
+                    onTrackClick = { track -> navigateToPlayer(track) }
                 )
             }
         }
@@ -45,6 +40,12 @@ class SearchFragment : Fragment() {
     private fun navigateToPlayer(track: Track) {
         val bundle = AudioPlayerFragment.createArguments(track)
         findNavController().navigate(R.id.audioPlayerFragment, bundle)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadSearchHistory()
+        viewModel.restoreSearchText()
     }
 
     override fun onDestroyView() {

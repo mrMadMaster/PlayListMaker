@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.search.domain.interactor.TrackInteractor
 import com.example.playlistmaker.search.domain.models.Track
-import com.example.playlistmaker.search.domain.models.SearchState
 import com.example.playlistmaker.utils.debounce
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
@@ -18,30 +17,11 @@ class SearchViewModel(
     private val trackInteractor: TrackInteractor
 ) : ViewModel() {
 
-    private val _searchState = MutableLiveData<SearchState>()
-    val searchState: LiveData<SearchState> = _searchState
-
-    private val _searchHistory = MutableLiveData<List<Track>>()
-    val searchHistory: LiveData<List<Track>> = _searchHistory
-
-    private val _isSearching = MutableLiveData(false)
-    val isSearching: LiveData<Boolean> = _isSearching
+    private val _state = MutableLiveData<SearchScreenState>()
+    val state: LiveData<SearchScreenState> = _state
 
     private var currentQuery: String = ""
     private var searchJob: Job? = null
-    private val _searchText = MutableLiveData("")
-    val searchText: LiveData<String> = _searchText
-
-    fun updateSearchText(text: String) {
-        _searchText.value = text
-    }
-
-    fun restoreSearchText() {
-        val text = _searchText.value
-        if (!text.isNullOrEmpty()) {
-            searchDebounced(text)
-        }
-    }
 
     private val debouncedSearch = debounce<String>(
         delayMillis = SEARCH_DEBOUNCE_DELAY,
@@ -59,38 +39,52 @@ class SearchViewModel(
         addToSearchHistory(track)
     }
 
-    private fun search(query: String) {
-        searchJob?.cancel()
+    init {
+        loadSearchHistory()
+        restoreSearchText()
+    }
 
-        _isSearching.value = true
-        _searchState.value = SearchState.Loading
+    fun updateSearchText(text: String) {
+        _state.value = _state.value?.copy(searchText = text) ?: SearchScreenState(searchText = text)
+    }
 
-        searchJob = trackInteractor.searchTracks(query)
-            .onEach { tracks ->
-                _isSearching.value = false
-                if (tracks.isEmpty()) {
-                    _searchState.value = SearchState.EmptyResult
-                } else {
-                    _searchState.value = SearchState.Content(tracks)
-                }
-            }
-            .catch { e ->
-                _isSearching.value = false
-                val errorState = SearchState.Error.NoConnection
-                _searchState.value = errorState
-            }
-            .launchIn(viewModelScope)
+    fun restoreSearchText() {
+        val text = _state.value?.searchText ?: ""
+        if (text.isNotEmpty()) {
+            searchDebounced(text)
+        }
     }
 
     fun searchDebounced(query: String) {
         currentQuery = query.trim()
-
         if (currentQuery.isEmpty()) {
-            _searchState.value = SearchState.Empty
+            _state.value = SearchScreenState(uiState = SearchUiState.Empty, searchText = query)
+            loadSearchHistory()
             return
         }
-
         debouncedSearch(currentQuery)
+    }
+
+    private fun search(query: String) {
+        searchJob?.cancel()
+        _state.value = _state.value?.copy(uiState = SearchUiState.Loading, isSearching = true)
+            ?: SearchScreenState(uiState = SearchUiState.Loading, isSearching = true)
+
+        searchJob = trackInteractor.searchTracks(query)
+            .onEach { tracks ->
+                val newState = if (tracks.isEmpty()) {
+                    SearchUiState.EmptyResult
+                } else {
+                    SearchUiState.Content(tracks)
+                }
+                _state.value = _state.value?.copy(uiState = newState, isSearching = false)
+                    ?: SearchScreenState(uiState = newState, isSearching = false)
+            }
+            .catch { e ->
+                _state.value = _state.value?.copy(uiState = SearchUiState.NoConnection, isSearching = false)
+                    ?: SearchScreenState(uiState = SearchUiState.NoConnection, isSearching = false)
+            }
+            .launchIn(viewModelScope)
     }
 
     fun clickDebounced(track: Track) {
@@ -100,7 +94,13 @@ class SearchViewModel(
     fun loadSearchHistory() {
         trackInteractor.getSearchHistory()
             .onEach { history ->
-                _searchHistory.value = history
+                val currentState = _state.value ?: SearchScreenState()
+                val uiState = if (currentState.searchText.isEmpty() && history.isNotEmpty()) {
+                    SearchUiState.History(history)
+                } else {
+                    currentState.uiState
+                }
+                _state.value = currentState.copy(uiState = uiState)
             }
             .catch { e ->
                 e.printStackTrace()
@@ -123,7 +123,8 @@ class SearchViewModel(
         viewModelScope.launch {
             try {
                 trackInteractor.clearSearchHistory()
-                _searchHistory.value = emptyList()
+                _state.value = _state.value?.copy(uiState = SearchUiState.Empty)
+                    ?: SearchScreenState(uiState = SearchUiState.Empty)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -132,8 +133,8 @@ class SearchViewModel(
 
     fun cancelSearch() {
         searchJob?.cancel()
-        _isSearching.value = false
-        _searchState.value = SearchState.Empty
+        _state.value = _state.value?.copy(uiState = SearchUiState.Empty, isSearching = false)
+            ?: SearchScreenState(uiState = SearchUiState.Empty, isSearching = false)
     }
 
     companion object {

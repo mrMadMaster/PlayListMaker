@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -30,10 +28,9 @@ class FavoritesFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                val darkTheme by settingsViewModel.themeState.observeAsState(false)
                 FavoritesScreen(
                     viewModel = viewModel,
-                    darkTheme = darkTheme,
+                    settingsViewModel = settingsViewModel,
                     onTrackClick = { track -> navigateToPlayer(track) }
                 )
             }

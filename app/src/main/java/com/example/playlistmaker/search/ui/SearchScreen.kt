@@ -23,42 +23,35 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.R
-import com.example.playlistmaker.search.domain.models.SearchState
 import com.example.playlistmaker.search.domain.models.Track
+import com.example.playlistmaker.search.ui.viewmodel.SearchScreenState
+import com.example.playlistmaker.search.ui.viewmodel.SearchUiState
 import com.example.playlistmaker.search.ui.viewmodel.SearchViewModel
+import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
+import com.example.playlistmaker.ui.components.TopBar
 import com.example.playlistmaker.ui.components.TrackItem
 import com.example.playlistmaker.ui.theme.PlaylistMakerTheme
 
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
-    darkTheme: Boolean,
+    settingsViewModel: SettingsViewModel,
     onTrackClick: (Track) -> Unit
 ) {
-    val searchState by viewModel.searchState.observeAsState(initial = SearchState.Empty)
-    val searchHistory by viewModel.searchHistory.observeAsState(emptyList())
-    val isSearching by viewModel.isSearching.observeAsState(false)
-    val savedText by viewModel.searchText.observeAsState("")
+    val darkTheme by settingsViewModel.themeState.observeAsState(initial = false)
+    val state by viewModel.state.observeAsState(initial = SearchScreenState())
 
-    var text by remember { mutableStateOf(savedText) }
+    val text = state.searchText
+    val uiState = state.uiState
+    val isSearching = state.isSearching
+
+    var localText by remember { mutableStateOf(text) }
     val focusManager = LocalFocusManager.current
 
-    val onTrackClickWithHistory: (Track) -> Unit = { track ->
-        viewModel.clickDebounced(track)
-        onTrackClick(track)
+    LaunchedEffect(text) {
+        if (localText != text) localText = text
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadSearchHistory()
-        viewModel.restoreSearchText()
-    }
-
-    LaunchedEffect(savedText) {
-        if (text != savedText) {
-            text = savedText
-        }
-    }
-    
     PlaylistMakerTheme(darkTheme = darkTheme) {
         Column(
             modifier = Modifier
@@ -67,32 +60,17 @@ fun SearchScreen(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
-                ) {
-                    focusManager.clearFocus()
-                }
+                ) { focusManager.clearFocus() }
         ) {
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.search),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 16.dp)
-                )
-            }
+            TopBar(title = stringResource(R.string.search))
 
             Spacer(modifier = Modifier.height(8.dp))
 
             BasicTextField(
-                value = text,
+                value = localText,
                 onValueChange = { newText ->
-                    text = newText
+                    localText = newText
                     viewModel.updateSearchText(newText)
                     viewModel.searchDebounced(newText)
                 },
@@ -136,9 +114,9 @@ fun SearchScreen(
                                 modifier = Modifier
                                     .size(16.dp)
                                     .clickable {
-                                        text = ""
+                                        localText = ""
                                         viewModel.updateSearchText("")
-                                        viewModel.cancelSearch()
+                                        viewModel.searchDebounced("")
                                         focusManager.clearFocus()
                                     },
                                 tint = MaterialTheme.colorScheme.secondaryContainer
@@ -152,55 +130,43 @@ fun SearchScreen(
 
             when {
                 isSearching -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
-
                 else -> {
-                    when (val state = searchState) {
-                        is SearchState.Content -> {
-                            TrackList(tracks = state.tracks, onTrackClick = onTrackClickWithHistory)
+                    when (uiState) {
+                        is SearchUiState.Content -> {
+                            TrackList(tracks = uiState.tracks, onTrackClick = { track ->
+                                viewModel.clickDebounced(track)
+                                onTrackClick(track)
+                            })
                         }
-
-                        is SearchState.EmptyResult -> {
-                            ErrorMessage(
-                                icon = R.drawable.ic_not_found_120,
-                                text = stringResource(R.string.not_found)
-                            )
+                        is SearchUiState.EmptyResult -> {
+                            ErrorMessage(R.drawable.ic_not_found_120, stringResource(R.string.not_found))
                         }
-
-                        is SearchState.Error.NoConnection -> {
+                        is SearchUiState.NoConnection -> {
                             ErrorMessage(
                                 icon = R.drawable.ic_no_connection_120,
                                 text = stringResource(R.string.no_connection),
-                                onRefresh = { viewModel.searchDebounced(text) }
+                                onRefresh = { viewModel.searchDebounced(localText) }
                             )
                         }
-
-                        is SearchState.Error.NetworkError -> {
-                            ErrorMessage(
-                                icon = R.drawable.ic_no_connection_120,
-                                text = stringResource(R.string.no_connection),
-                                onRefresh = { viewModel.searchDebounced(text) }
-                            )
-                        }
-
-                        SearchState.Empty -> {
-                            if (text.isEmpty() && searchHistory.isNotEmpty()) {
+                        is SearchUiState.History -> {
+                            if (localText.isEmpty() && uiState.tracks.isNotEmpty()) {
                                 SearchHistorySection(
-                                    history = searchHistory,
-                                    onTrackClick = onTrackClickWithHistory,
+                                    history = uiState.tracks,
+                                    onTrackClick = { track ->
+                                        viewModel.clickDebounced(track)
+                                        onTrackClick(track)
+                                    },
                                     onClearHistory = { viewModel.clearSearchHistory() }
                                 )
                             }
                         }
-
-                        SearchState.Loading -> { /* already handled */
+                        SearchUiState.Empty -> {
                         }
+                        SearchUiState.Loading -> {}
                     }
                 }
             }
