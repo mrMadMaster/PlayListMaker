@@ -4,85 +4,46 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import com.example.playlistmaker.R
-import com.example.playlistmaker.databinding.FragmentPlaylistListBinding
-import com.example.playlistmaker.mediaLibrary.ui.adapter.PlaylistAdapter
+import com.example.playlistmaker.mediaLibrary.ui.PlaylistsListScreen
 import com.example.playlistmaker.mediaLibrary.ui.viewmodel.PlaylistsViewModel
+import com.example.playlistmaker.settings.ui.viewmodel.SettingsViewModel
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PlaylistsListFragment : Fragment() {
 
-    private var _binding: FragmentPlaylistListBinding? = null
-    private val binding get() = _binding!!
     private val viewModel: PlaylistsViewModel by viewModel()
-
-    private lateinit var playlistAdapter: PlaylistAdapter
+    private val settingsViewModel: SettingsViewModel by inject()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentPlaylistListBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        setupRecyclerView()
-        setupClickListeners()
-        observeViewModel()
-    }
-
-    private fun setupRecyclerView() {
-        playlistAdapter = PlaylistAdapter { playlist ->
-            val bundle = Bundle().apply {
-                putInt(PLAYLIST_ID_ARG, playlist.id)
-            }
-            findNavController().navigate(R.id.action_mediaLibraryFragment_to_playlistFragment, bundle)
-        }
-
-        binding.playlistsRecyclerView.apply {
-            adapter = playlistAdapter
-            layoutManager = GridLayoutManager(requireContext(), 2)
-        }
-    }
-
-    private fun setupClickListeners() {
-        binding.buttonNewPlaylist.setOnClickListener {
-            findNavController().navigate(R.id.action_mediaLibraryFragment_to_newPlaylistFragment)
-        }
-    }
-
-    private fun observeViewModel() {
-        viewModel.playlists.observe(viewLifecycleOwner) { playlists ->
-            if (playlists.isEmpty()) {
-                binding.emptyStateLayout.isVisible = true
-                binding.playlistsRecyclerView.isVisible = false
-            } else {
-                binding.emptyStateLayout.isVisible = false
-                binding.playlistsRecyclerView.isVisible = true
-                playlistAdapter.updatePlaylists(playlists)
+        return ComposeView(requireContext()).apply {
+            setContent {
+                PlaylistsListScreen(
+                    viewModel = viewModel,
+                    settingsViewModel = settingsViewModel,
+                    onNewPlaylistClick = { navigateToNewPlaylist() },
+                    onPlaylistClick = { playlist -> navigateToPlaylist(playlist) }
+                )
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.loadPlaylists()
+    private fun navigateToNewPlaylist() {
+        findNavController().navigate(R.id.action_mediaLibraryFragment_to_newPlaylistFragment)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    companion object {
-        const val PLAYLIST_ID_ARG = "playlist_id"
+    private fun navigateToPlaylist(playlist: com.example.playlistmaker.mediaLibrary.domain.models.Playlist) {
+        val bundle = Bundle().apply {
+            putInt("playlist_id", playlist.id)
+        }
+        findNavController().navigate(R.id.action_mediaLibraryFragment_to_playlistFragment, bundle)
     }
 }
